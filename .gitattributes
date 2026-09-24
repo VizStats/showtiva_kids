@@ -1,0 +1,2 @@
+# JSON content store is written by the app; keep LF so writes do not churn the diff.
+data/*.json text eol=lf

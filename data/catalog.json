@@ -1,0 +1,1918 @@
+{
+  "version": 1,
+  "updatedAt": null,
+  "characters": [
+    {
+      "id": "bloop",
+      "name": "Bloop",
+      "role": "The sweet one",
+      "world": "Giggles",
+      "worldLine": "Silly cartoons and big, happy laughs",
+      "bio": "Hi, I'm Bloop! I'm a drop of pure happy. I wave at everyone, I share my ice cream (mostly), and I think every puddle is a swimming pool.",
+      "likes": [
+        "Ice cream",
+        "Puddles",
+        "Making new friends"
+      ],
+      "quotes": [
+        "Hiii! Want some ice cream?",
+        "Every puddle is a pool!",
+        "You're my favourite. Don't tell the others!",
+        "Sprinkles make everything better."
+      ],
+      "color": "#1d8cf8",
+      "soft": "#e2f0ff",
+      "deep": "#0a58b8",
+      "onColor": "#ffffff",
+      "image": "/characters/bloop.svg",
+      "aspect": 0.7224,
+      "face": {
+        "x": 15,
+        "y": 6,
+        "size": 64
+      },
+      "motif": "drops"
+    },
+    {
+      "id": "kai",
+      "name": "Kai",
+      "role": "The brave one",
+      "world": "Adventures",
+      "worldLine": "Big waves, wild places and brave hearts",
+      "bio": "Yo, I'm Kai! Big waves, tall trees, secret caves: if it's out there, I want to find it. Being brave just means trying, even when your knees wobble.",
+      "likes": [
+        "Surfing",
+        "Treasure maps",
+        "Sea turtles"
+      ],
+      "quotes": [
+        "Surf's up, let's go!",
+        "Brave doesn't mean not scared.",
+        "I found a map! Probably.",
+        "Wipeouts are just practice."
+      ],
+      "color": "#14b39a",
+      "soft": "#d8f6ee",
+      "deep": "#0a7d6b",
+      "onColor": "#ffffff",
+      "image": "/characters/kai.svg",
+      "aspect": 0.6987,
+      "face": {
+        "x": 25,
+        "y": 15,
+        "size": 60
+      },
+      "motif": "waves"
+    },
+    {
+      "id": "cog",
+      "name": "Cog",
+      "role": "The clever one",
+      "world": "Learn",
+      "worldLine": "Questions, experiments and how things work",
+      "bio": "Hello! I'm Cog. My head is full of gears and my notebook is full of questions. How do rainbows work? Why do cats purr? Let's find out together.",
+      "likes": [
+        "Building things",
+        "Big questions",
+        "Pencils (sharp ones)"
+      ],
+      "quotes": [
+        "Ooh, good question!",
+        "Let me write that down.",
+        "Mistakes are how inventions start.",
+        "My gears are turning!"
+      ],
+      "color": "#ff8717",
+      "soft": "#ffead4",
+      "deep": "#c25a00",
+      "onColor": "#ffffff",
+      "image": "/characters/cog.svg",
+      "aspect": 0.6668,
+      "face": {
+        "x": 29,
+        "y": 10.5,
+        "size": 64
+      },
+      "motif": "gears"
+    },
+    {
+      "id": "nova",
+      "name": "Nova",
+      "role": "The star",
+      "world": "Music",
+      "worldLine": "Sing-alongs, dance parties and show-stoppers",
+      "bio": "Darling, I'm Nova! I sing, I dance, I shine. Every kitchen is a stage and every hairbrush is a microphone. Sing it with me!",
+      "likes": [
+        "Singing loud",
+        "Sparkly boots",
+        "Dance-offs"
+      ],
+      "quotes": [
+        "And a five, six, seven, eight!",
+        "Sing it like you mean it!",
+        "Every day deserves a song.",
+        "Take a bow, superstar!"
+      ],
+      "color": "#9048dc",
+      "soft": "#efe3ff",
+      "deep": "#6326a8",
+      "onColor": "#ffffff",
+      "image": "/characters/nova.svg",
+      "aspect": 0.5037,
+      "face": {
+        "x": 14,
+        "y": 7.9,
+        "size": 72
+      },
+      "motif": "notes"
+    },
+    {
+      "id": "zip",
+      "name": "Zip",
+      "role": "The speedy one",
+      "world": "Move & Play",
+      "worldLine": "Get up, jump about and play",
+      "bio": "ZIP! That's me! I skate, I jump, I spin, and I never stop smiling. Get up and move with me. Ready, set... zip!",
+      "likes": [
+        "Skateboards",
+        "Racing",
+        "Jumping on things"
+      ],
+      "quotes": [
+        "Ready, set, ZIP!",
+        "Faster! No, wait, slower!",
+        "Helmet on? Let's roll!",
+        "Can't catch me!"
+      ],
+      "color": "#ffcc12",
+      "soft": "#fff4c7",
+      "deep": "#a67c00",
+      "onColor": "#1e1a3c",
+      "image": "/characters/zip.svg",
+      "aspect": 0.6981,
+      "face": {
+        "x": 25,
+        "y": 15.8,
+        "size": 58
+      },
+      "motif": "bolts"
+    },
+    {
+      "id": "coco",
+      "name": "Coco",
+      "role": "The chill one",
+      "world": "Sleepy Time",
+      "worldLine": "Calm moments, bedtime stories and deep breaths",
+      "bio": "Hey... I'm Coco. I'm never in a hurry. I like warm sun, cool drinks and stories that end with a yawn. Want to take a slow, deep breath with me?",
+      "likes": [
+        "Sunny naps",
+        "Slow stories",
+        "Starry skies"
+      ],
+      "quotes": [
+        "Breathe in... and out.",
+        "No rush. No rush at all.",
+        "Is it nap time? It feels like nap time.",
+        "Goodnight, moon. Goodnight, you."
+      ],
+      "color": "#f25a8e",
+      "soft": "#ffe3ec",
+      "deep": "#b8275b",
+      "onColor": "#ffffff",
+      "image": "/characters/coco.svg",
+      "aspect": 0.5485,
+      "face": {
+        "x": 12,
+        "y": 15,
+        "size": 64
+      },
+      "motif": "moons"
+    }
+  ],
+  "featuredIds": [
+    "showtiva-crew",
+    "kai-catches-a-wave",
+    "nova-sings",
+    "cogs-workshop",
+    "summer-at-splash-park"
+  ],
+  "rows": [
+    {
+      "id": "brand-new",
+      "title": "Brand new",
+      "showIds": [
+        "summer-at-splash-park",
+        "star-stage",
+        "ready-set-zip",
+        "wild-wonders",
+        "moonlight-beach",
+        "cogs-code-club",
+        "puddle-jumpers"
+      ]
+    },
+    {
+      "id": "movies",
+      "title": "Movies & specials",
+      "showIds": [
+        "summer-at-splash-park",
+        "lost-map-of-tiva-island",
+        "novas-dance-party"
+      ]
+    }
+  ],
+  "shows": {
+    "showtiva-crew": {
+      "id": "showtiva-crew",
+      "title": "The ShowTiva Crew",
+      "host": "bloop",
+      "cast": [
+        "kai",
+        "cog",
+        "nova",
+        "zip",
+        "coco"
+      ],
+      "art": "crew",
+      "ageMin": 5,
+      "format": "Series",
+      "logline": "Six best friends. One island. Zero boring days.",
+      "description": "Bloop, Kai, Cog, Nova, Zip and Coco share one island and a lot of big ideas. Some work out. Some end with ice cream on the ceiling. Every one is better together.",
+      "tags": [
+        "friends",
+        "funny",
+        "adventure",
+        "teamwork"
+      ],
+      "motif": "stars",
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Welcome to Tiva Island",
+              "duration": "22m",
+              "description": "Meet the crew on the sunniest, silliest island in the sea.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "The Treehouse Plan",
+              "duration": "22m",
+              "description": "Six friends, one treehouse and six very different ideas about what it should look like.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Rain Check",
+              "duration": "22m",
+              "description": "A rainy day ruins the picnic, so the crew brings the picnic indoors.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "The Missing Sandal",
+              "duration": "22m",
+              "description": "Coco's favourite sandal is gone, and Cog is on the case.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Crew Swap",
+              "duration": "22m",
+              "description": "Everyone trades jobs for a day. What could possibly go wrong?",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "The Best Birthday",
+              "duration": "22m",
+              "description": "The crew plans a surprise party for Zip, who is very hard to surprise.",
+              "videoUrl": null
+            },
+            {
+              "number": 7,
+              "title": "Sorry Seems Hard",
+              "duration": "22m",
+              "description": "Kai and Nova fall out, and learn that saying sorry is its own kind of brave.",
+              "videoUrl": null
+            },
+            {
+              "number": 8,
+              "title": "Island Fair",
+              "duration": "22m",
+              "description": "Games, prizes and one enormous cake at the Tiva Island summer fair.",
+              "videoUrl": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Back to the Treehouse",
+              "duration": "22m",
+              "description": "A storm knocks the treehouse sideways, so the crew builds it back better.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "The New Neighbour",
+              "duration": "22m",
+              "description": "Someone new moves onto the island, and they don't speak the crew's language yet.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Cog's Big Mistake",
+              "duration": "22m",
+              "description": "Cog's invention floods the beach, and fixing it takes everybody.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Nova's Lost Voice",
+              "duration": "22m",
+              "description": "The night before the big show, Nova can't sing a note.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Summer Storm",
+              "duration": "22m",
+              "description": "The crew keeps each other calm through the loudest night of the year.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "Together Again",
+              "duration": "22m",
+              "description": "A year on Tiva Island ends the only way it could: together.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "summer-at-splash-park": {
+      "id": "summer-at-splash-park",
+      "title": "Summer at Splash Park",
+      "host": "coco",
+      "cast": [
+        "bloop",
+        "kai",
+        "zip",
+        "nova",
+        "cog"
+      ],
+      "art": "crew",
+      "ageMin": 4,
+      "format": "Movie",
+      "runtime": "1h 6m",
+      "videoUrl": null,
+      "logline": "The crew's biggest, splashiest summer ever.",
+      "description": "When Splash Park is about to close for good, the crew has one summer to save it, with a water-slide race, a giant sandcastle and the best ice cream on the island.",
+      "tags": [
+        "movie",
+        "summer",
+        "friends",
+        "water"
+      ],
+      "motif": "bubbles",
+      "year": "2026"
+    },
+    "bloop-and-the-big-scoop": {
+      "id": "bloop-and-the-big-scoop",
+      "title": "Bloop & the Big Scoop",
+      "host": "bloop",
+      "cast": [
+        "zip",
+        "coco"
+      ],
+      "ageMin": 3,
+      "format": "Series",
+      "motif": "cones",
+      "logline": "The silliest ice-cream truck on Tiva Island.",
+      "description": "Bloop drives the bounciest ice-cream truck on the island. Every day brings a new flavour, a new friend and at least one scoop on somebody's head.",
+      "tags": [
+        "funny",
+        "food",
+        "friends"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "The Flavour Nobody Ordered",
+              "duration": "11m",
+              "description": "Zip asks for lightning lemon, and Bloop has to invent it on the spot.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Brain Freeze!",
+              "duration": "11m",
+              "description": "A hot day, a huge cone and one very chilly head.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Sprinkles Everywhere",
+              "duration": "11m",
+              "description": "A sneeze in the sprinkle jar turns the whole truck into a rainbow.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "The Great Melt",
+              "duration": "11m",
+              "description": "Can Bloop deliver Coco's order across the beach before it melts?",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Scoop for Everyone",
+              "duration": "11m",
+              "description": "Bloop runs out of cones just as the whole crew turns up hungry.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "Rainbow Swirl Day",
+              "duration": "11m",
+              "description": "Bloop throws a party to thank every customer, even the seagulls.",
+              "videoUrl": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Grandma Drop's Recipe",
+              "duration": "11m",
+              "description": "An old notebook holds one last flavour nobody has ever tasted.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "The Truck Won't Start",
+              "duration": "11m",
+              "description": "With the truck stuck, Bloop delivers ice cream on foot. Quickly.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Frozen Friends",
+              "duration": "11m",
+              "description": "A freezer mix-up turns Bloop's snowman into the star of the show.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Snow Cone Surprise",
+              "duration": "11m",
+              "description": "Bloop learns the best treats are the ones you share.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "puddle-jumpers": {
+      "id": "puddle-jumpers",
+      "title": "Puddle Jumpers",
+      "host": "bloop",
+      "cast": [
+        "zip"
+      ],
+      "ageMin": 2,
+      "format": "Series",
+      "motif": "drops",
+      "tone": "soft",
+      "logline": "Rainy days are the best days.",
+      "description": "Wellies on! Bloop and Zip go looking for the biggest, splashiest puddles on Tiva Island, and find out where the rain goes when it stops.",
+      "tags": [
+        "rain",
+        "outdoors",
+        "funny",
+        "preschool"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "The Biggest Puddle",
+              "duration": "8m",
+              "description": "Bloop and Zip search the whole island for the biggest puddle of all.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Splash Contest",
+              "duration": "8m",
+              "description": "Who can make the biggest splash? Everybody gets a little wet.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Welly Boot Parade",
+              "duration": "8m",
+              "description": "Red boots, blue boots, one boot missing. A parade in the rain.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Where Do Puddles Go?",
+              "duration": "8m",
+              "description": "The sun comes out and the puddles vanish. But where to?",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Rainbow Hunt",
+              "duration": "8m",
+              "description": "After the rain comes the best bit.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "bloop-says-hi": {
+      "id": "bloop-says-hi",
+      "title": "Bloop Says Hi",
+      "host": "bloop",
+      "ageMin": 2,
+      "format": "Minis",
+      "motif": "hearts",
+      "tone": "deep",
+      "logline": "Tiny hellos to the big, wide world.",
+      "description": "Two-minute moments where Bloop says hello to something new, and finds out a little bit about it.",
+      "tags": [
+        "feelings",
+        "friends",
+        "short",
+        "preschool"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Hi, Sun!",
+              "duration": "2m",
+              "description": "Good morning to the brightest thing in the sky.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Hi, Pigeon!",
+              "duration": "2m",
+              "description": "A new friend who only says one word.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Hi, Moon!",
+              "duration": "2m",
+              "description": "Why is the moon out in the daytime?",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Hi, New Friend!",
+              "duration": "2m",
+              "description": "Saying hello when you feel a little shy.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Hi, Grandma!",
+              "duration": "2m",
+              "description": "A video call with someone far away.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "Hi, Me!",
+              "duration": "2m",
+              "description": "Bloop says hello to the mirror, and likes what it sees.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "cast": [],
+      "year": "2026"
+    },
+    "kai-catches-a-wave": {
+      "id": "kai-catches-a-wave",
+      "title": "Kai Catches a Wave",
+      "host": "kai",
+      "cast": [
+        "zip",
+        "cog"
+      ],
+      "ageMin": 5,
+      "format": "Series",
+      "logline": "One surfboard, one island, one very big wave.",
+      "description": "Kai has one dream: to ride the Great Tiva Wave. Along the way there are wipeouts, new friends and lessons about being brave even when your knees wobble.",
+      "tags": [
+        "ocean",
+        "surfing",
+        "adventure",
+        "brave"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "First Paddle",
+              "duration": "12m",
+              "description": "Kai's first morning on a brand-new board.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Wipeout!",
+              "duration": "12m",
+              "description": "Falling off is part of learning. Kai just has to get back on.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "The Turtle Who Surfed",
+              "duration": "12m",
+              "description": "A wise old turtle shows Kai how to read the sea.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Storm Watch",
+              "duration": "12m",
+              "description": "When the weather turns, the bravest thing is staying on the shore.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Board Repair",
+              "duration": "12m",
+              "description": "Cog helps fix Kai's cracked board with a clever idea.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "The Big One",
+              "duration": "12m",
+              "description": "The Great Tiva Wave is coming. Is Kai ready?",
+              "videoUrl": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Island Hopping",
+              "duration": "12m",
+              "description": "Kai paddles out to explore the little islands nobody visits.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Night Surf",
+              "duration": "12m",
+              "description": "Glowing fish light up the water for one magical night.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Teaching Zip",
+              "duration": "12m",
+              "description": "Zip wants to surf, and Kai learns that teaching is hard too.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Sunset Session",
+              "duration": "12m",
+              "description": "The last wave of summer, shared with every friend.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "lost-map-of-tiva-island": {
+      "id": "lost-map-of-tiva-island",
+      "title": "The Lost Map of Tiva Island",
+      "host": "kai",
+      "cast": [
+        "cog",
+        "nova",
+        "bloop"
+      ],
+      "ageMin": 6,
+      "format": "Movie",
+      "runtime": "1h 14m",
+      "videoUrl": null,
+      "motif": "leaves",
+      "logline": "An old map, a hidden cove and the adventure of a lifetime.",
+      "description": "When Kai finds a crumpled map in a bottle, the crew sets off across jungles, rope bridges and secret caves to find the treasure at the heart of Tiva Island, and learns it was never gold at all.",
+      "tags": [
+        "movie",
+        "adventure",
+        "mystery",
+        "friends"
+      ],
+      "year": "2026"
+    },
+    "wild-wonders": {
+      "id": "wild-wonders",
+      "title": "Wild Wonders with Kai",
+      "host": "kai",
+      "cast": [
+        "cog"
+      ],
+      "ageMin": 4,
+      "format": "Series",
+      "motif": "leaves",
+      "tone": "soft",
+      "logline": "Real animals, real places, one very excited guide.",
+      "description": "Kai travels the world to meet the animals who live in it, from singing whales to busy bees, with Cog along to answer every question.",
+      "tags": [
+        "animals",
+        "nature",
+        "learning"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Whale Songs",
+              "duration": "10m",
+              "description": "Why do whales sing, and who are they singing to?",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Busy Bees",
+              "duration": "10m",
+              "description": "A day inside the busiest house in the garden.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "The Night Forest",
+              "duration": "10m",
+              "description": "Who wakes up when everyone else goes to sleep?",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Penguin Parade",
+              "duration": "10m",
+              "description": "Waddling, sliding and swimming at the bottom of the world.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Tiny Turtles",
+              "duration": "10m",
+              "description": "Baby turtles race to the sea for the very first time.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "Elephant Friends",
+              "duration": "10m",
+              "description": "The biggest animals on land have the biggest families.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "deep-blue": {
+      "id": "deep-blue",
+      "title": "Deep Blue",
+      "host": "kai",
+      "cast": [
+        "cog"
+      ],
+      "ageMin": 9,
+      "format": "Series",
+      "motif": "waves",
+      "tone": "deep",
+      "logline": "The ocean's greatest mysteries, explored.",
+      "description": "Kai and Cog dive into the deepest, darkest and strangest parts of the ocean, and meet the scientists and kids working to protect it.",
+      "tags": [
+        "ocean",
+        "science",
+        "documentary",
+        "nature"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Into the Twilight Zone",
+              "duration": "18m",
+              "description": "What lives where the sunlight can't reach?",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Coral Cities",
+              "duration": "18m",
+              "description": "The busiest neighbourhoods on the planet are underwater.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Ocean Giants",
+              "duration": "18m",
+              "description": "Whales, whale sharks and the gentle giants of the sea.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "The Plastic Problem",
+              "duration": "18m",
+              "description": "How rubbish ends up in the sea, and the kids around the world cleaning it up.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "cogs-workshop": {
+      "id": "cogs-workshop",
+      "title": "Cog's Workshop",
+      "host": "cog",
+      "cast": [
+        "bloop",
+        "zip"
+      ],
+      "ageMin": 4,
+      "format": "Series",
+      "logline": "One question, one invention, one very messy workshop.",
+      "description": "Every episode, Cog's friends bring a problem to the workshop, and Cog builds something to solve it, showing exactly how it works along the way.",
+      "tags": [
+        "science",
+        "building",
+        "how things work"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "How Does a Bike Go?",
+              "duration": "11m",
+              "description": "Pedals, chains and wheels, taken apart and put back together.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "The Paper Plane Lab",
+              "duration": "11m",
+              "description": "Which paper plane flies furthest, and why?",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Make a Rainbow",
+              "duration": "11m",
+              "description": "Sunlight, water and a little bit of magic science.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Why Do Boats Float?",
+              "duration": "11m",
+              "description": "Cog tests everything in the bath. Everything.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "The Clock That Talks",
+              "duration": "11m",
+              "description": "Cog builds a clock that tells Zip when to stop skating.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "Robot Helper",
+              "duration": "11m",
+              "description": "A robot that tidies up. Mostly.",
+              "videoUrl": null
+            }
+          ]
+        },
+        {
+          "number": 2,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "The Marble Run",
+              "duration": "11m",
+              "description": "The longest marble run on Tiva Island, from the roof to the floor.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Kite Day",
+              "duration": "11m",
+              "description": "How does wind lift a kite? Cog builds six to find out.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "The Water Wheel",
+              "duration": "11m",
+              "description": "Turning a stream into power for the treehouse lights.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Lights On!",
+              "duration": "11m",
+              "description": "Batteries, wires and the first light switch in the treehouse.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "why-cog-why": {
+      "id": "why-cog-why",
+      "title": "Why, Cog, Why?",
+      "host": "cog",
+      "cast": [
+        "nova",
+        "coco"
+      ],
+      "ageMin": 5,
+      "format": "Series",
+      "motif": "bulbs",
+      "tone": "soft",
+      "logline": "Real questions from real kids, answered.",
+      "description": "Kids ask the questions, Cog finds the answers. Short, clear and full of 'whoa' moments.",
+      "tags": [
+        "questions",
+        "science",
+        "curious"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Why Is the Sky Blue?",
+              "duration": "7m",
+              "description": "It's all about how sunlight bounces around.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Why Do Cats Purr?",
+              "duration": "7m",
+              "description": "Coco has a theory. Cog has the facts.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Why Do We Sleep?",
+              "duration": "7m",
+              "description": "What your brain gets up to when you're snoozing.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Why Does the Moon Change Shape?",
+              "duration": "7m",
+              "description": "Spoiler: it doesn't. Here's what's really going on.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Why Do Bubbles Pop?",
+              "duration": "7m",
+              "description": "Nova blows bubbles, Cog explains, everybody gets soapy.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "Why Do Leaves Fall?",
+              "duration": "7m",
+              "description": "Why trees get ready for winter by letting go.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "number-garden": {
+      "id": "number-garden",
+      "title": "Number Garden",
+      "host": "cog",
+      "cast": [
+        "bloop"
+      ],
+      "ageMin": 2,
+      "format": "Series",
+      "motif": "flowers",
+      "tone": "soft",
+      "logline": "Counting, shapes and patterns, growing in the garden.",
+      "description": "Cog and Bloop plant a garden and learn their numbers one seed at a time.",
+      "tags": [
+        "numbers",
+        "counting",
+        "shapes",
+        "preschool"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "One Little Seed",
+              "duration": "6m",
+              "description": "Everything big starts with one.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Two by Two",
+              "duration": "6m",
+              "description": "Pairs of socks, pairs of shoes, pairs of worms.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Shapes in the Garden",
+              "duration": "6m",
+              "description": "Circles, squares and triangles are hiding everywhere.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Counting Clouds",
+              "duration": "6m",
+              "description": "How many clouds can you count before they change?",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Five Little Ladybirds",
+              "duration": "6m",
+              "description": "Counting spots, counting legs, counting ladybirds.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "Ten Bright Flowers",
+              "duration": "6m",
+              "description": "The garden is finished, and it's time to count it all.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "cogs-code-club": {
+      "id": "cogs-code-club",
+      "title": "Cog's Code Club",
+      "host": "cog",
+      "cast": [
+        "zip"
+      ],
+      "ageMin": 9,
+      "format": "Series",
+      "motif": "gears",
+      "tone": "deep",
+      "logline": "Think like a coder, build a real game.",
+      "description": "Cog and Zip build a skateboarding game from scratch, one idea at a time: loops, ifs, bugs and all.",
+      "tags": [
+        "coding",
+        "games",
+        "logic",
+        "computers"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "What Is Code?",
+              "duration": "15m",
+              "description": "Instructions, in order, for someone who does exactly what you say.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Loops and Laps",
+              "duration": "15m",
+              "description": "Doing something again and again, without writing it again and again.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "If This, Then That",
+              "duration": "15m",
+              "description": "Teaching the game to make decisions.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Bugs Aren't Bad",
+              "duration": "15m",
+              "description": "Every coder makes mistakes. Good coders find them.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Level Up!",
+              "duration": "15m",
+              "description": "The game is finished. Now, who can beat Zip's high score?",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "nova-sings": {
+      "id": "nova-sings",
+      "title": "Nova Sings!",
+      "host": "nova",
+      "cast": [
+        "bloop",
+        "coco"
+      ],
+      "ageMin": 2,
+      "format": "Series",
+      "logline": "Big songs for little voices.",
+      "description": "Sing-along songs for every part of the day, from getting up to brushing teeth to saying goodnight. Words on screen, so everyone can join in.",
+      "tags": [
+        "songs",
+        "music",
+        "sing-along",
+        "preschool"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Good Morning Song",
+              "duration": "5m",
+              "description": "Stretch, yawn and sing hello to the day.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Brush, Brush, Brush",
+              "duration": "5m",
+              "description": "Two minutes of the most sparkly song about teeth.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Rainbow Colours",
+              "duration": "5m",
+              "description": "Red and yellow and pink and green, and all the rest.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "The Wiggle Wiggle",
+              "duration": "5m",
+              "description": "You can't sit still for this one. Don't even try.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Five Little Stars",
+              "duration": "5m",
+              "description": "A counting song that twinkles.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "Goodnight, Tiva Island",
+              "duration": "5m",
+              "description": "A lullaby for the whole island.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "star-stage": {
+      "id": "star-stage",
+      "title": "Star Stage",
+      "host": "nova",
+      "cast": [
+        "zip",
+        "cog",
+        "kai"
+      ],
+      "ageMin": 7,
+      "format": "Series",
+      "motif": "stars",
+      "tone": "deep",
+      "logline": "The island's talent show, where everyone gets a turn.",
+      "description": "Nova hosts the Tiva Island talent show, and helps every act find their moment, including the ones who are scared to take the stage.",
+      "tags": [
+        "music",
+        "show",
+        "friends",
+        "confidence"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Auditions!",
+              "duration": "14m",
+              "description": "Juggling, poetry, one very loud trumpet. Let the show begin.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Stage Fright",
+              "duration": "14m",
+              "description": "Cog's knees knock. Nova knows exactly how that feels.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "The Big Duet",
+              "duration": "14m",
+              "description": "Two friends, one song, and very different ideas about how it goes.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Costume Chaos",
+              "duration": "14m",
+              "description": "A wardrobe disaster, fixed with glue, glitter and teamwork.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "The Understudy",
+              "duration": "14m",
+              "description": "When the star is sick, someone else has to shine.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "Finale Night",
+              "duration": "14m",
+              "description": "Lights up, curtains open. Everyone takes a bow.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "novas-dance-party": {
+      "id": "novas-dance-party",
+      "title": "Nova's Dance Party",
+      "host": "nova",
+      "cast": [
+        "zip",
+        "bloop",
+        "coco",
+        "kai",
+        "cog"
+      ],
+      "ageMin": 3,
+      "format": "Special",
+      "runtime": "24m",
+      "videoUrl": null,
+      "motif": "notes",
+      "tone": "soft",
+      "logline": "Push back the sofa, it's a dance party!",
+      "description": "Twenty-four minutes of non-stop dancing with the whole crew. Easy moves, big songs, and a very sleepy cool-down with Coco at the end.",
+      "tags": [
+        "dance",
+        "music",
+        "party",
+        "moving"
+      ],
+      "year": "2026"
+    },
+    "zip-zap-skate-park": {
+      "id": "zip-zap-skate-park",
+      "title": "Zip Zap Skate Park",
+      "host": "zip",
+      "cast": [
+        "kai"
+      ],
+      "ageMin": 6,
+      "format": "Series",
+      "logline": "Tricks, tumbles and the fastest friend on four wheels.",
+      "description": "Zip wants to land every trick in the book. First, though, Zip has to learn the most important one: getting back up.",
+      "tags": [
+        "skateboarding",
+        "sport",
+        "friends"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "The Ollie",
+              "duration": "11m",
+              "description": "The first trick every skater learns, and the hardest.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Helmet Hero",
+              "duration": "11m",
+              "description": "Why the coolest skaters always wear a helmet.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Wobble Board",
+              "duration": "11m",
+              "description": "Balance is a superpower. Zip practises on everything.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "The Big Ramp",
+              "duration": "11m",
+              "description": "It looks a lot bigger from the top.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Skate Buddies",
+              "duration": "11m",
+              "description": "Kai tries skating, and Zip learns to go slow.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "Zip's First Competition",
+              "duration": "11m",
+              "description": "Winning is fun. Trying your best is better.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "ready-set-zip": {
+      "id": "ready-set-zip",
+      "title": "Ready, Set, Zip!",
+      "host": "zip",
+      "cast": [
+        "nova"
+      ],
+      "ageMin": 3,
+      "format": "Series",
+      "motif": "bolts",
+      "tone": "soft",
+      "logline": "Ten-minute get-up-and-go games.",
+      "description": "Jump, stretch, freeze and race with Zip. Every episode is a ten-minute game that gets the whole living room moving.",
+      "tags": [
+        "exercise",
+        "moving",
+        "games",
+        "dance"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Jump Like a Frog",
+              "duration": "10m",
+              "description": "Ribbit, bounce, ribbit, bounce!",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Stretch Like a Cat",
+              "duration": "10m",
+              "description": "Slow, long, stretchy moves for a sleepy morning.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Freeze Dance",
+              "duration": "10m",
+              "description": "Dance when the music plays. Freeze when it stops!",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Balloon Keepy-Uppy",
+              "duration": "10m",
+              "description": "Don't let the balloon touch the floor.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "The Floor Is Lava",
+              "duration": "10m",
+              "description": "Cushion to cushion, all the way across the room.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "Animal Race",
+              "duration": "10m",
+              "description": "Hop like a bunny, stomp like an elephant, zoom like Zip.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "tiva-island-games": {
+      "id": "tiva-island-games",
+      "title": "Tiva Island Games",
+      "host": "zip",
+      "cast": [
+        "kai",
+        "nova",
+        "cog",
+        "bloop"
+      ],
+      "ageMin": 7,
+      "format": "Series",
+      "motif": "stars",
+      "tone": "deep",
+      "logline": "Six friends, ten silly sports, one golden coconut.",
+      "description": "The crew competes in the silliest sports day ever held, where the only rule is to play fair and help your friends up.",
+      "tags": [
+        "sport",
+        "competition",
+        "teamwork",
+        "funny"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Opening Day",
+              "duration": "13m",
+              "description": "The torch is lit and the golden coconut is waiting.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Sack Race Showdown",
+              "duration": "13m",
+              "description": "Hop, hop, hop, flop.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Sandcastle Sprint",
+              "duration": "13m",
+              "description": "Build the tallest castle before the tide comes in.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "The Wobbly Relay",
+              "duration": "13m",
+              "description": "Carry an egg on a spoon across a very bouncy bridge.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Tug of Friendship",
+              "duration": "13m",
+              "description": "The rope is long. The argument is longer.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "The Golden Coconut",
+              "duration": "13m",
+              "description": "Who wins? Everyone, sort of.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "cocos-sleepy-stories": {
+      "id": "cocos-sleepy-stories",
+      "title": "Coco's Sleepy Stories",
+      "host": "coco",
+      "cast": [
+        "bloop"
+      ],
+      "ageMin": 2,
+      "format": "Series",
+      "motif": "moons",
+      "tone": "deep",
+      "logline": "Gentle stories that end with a yawn.",
+      "description": "Soft voices, slow pictures and quiet stories to help little ones wind down at the end of the day.",
+      "tags": [
+        "bedtime",
+        "stories",
+        "calm",
+        "preschool"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "The Moon Who Couldn't Sleep",
+              "duration": "8m",
+              "description": "Even the moon needs someone to say goodnight.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "The Blanket Fort",
+              "duration": "8m",
+              "description": "The coziest castle in the whole world.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "The Quiet Shell",
+              "duration": "8m",
+              "description": "Listen closely. Can you hear the sea?",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "Counting Sheep at the Beach",
+              "duration": "8m",
+              "description": "One sheep, two sheep, one sheep in sunglasses.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Stars on the Ceiling",
+              "duration": "8m",
+              "description": "Bloop can't sleep, so Coco makes a sky.",
+              "videoUrl": null
+            },
+            {
+              "number": 6,
+              "title": "Goodnight, Everyone",
+              "duration": "8m",
+              "description": "Goodnight to every friend on Tiva Island.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    },
+    "breathe-with-coco": {
+      "id": "breathe-with-coco",
+      "title": "Breathe with Coco",
+      "host": "coco",
+      "ageMin": 3,
+      "format": "Minis",
+      "motif": "bubbles",
+      "tone": "soft",
+      "logline": "Three-minute calm-downs for busy days.",
+      "description": "Short, simple breathing games for big feelings, before school, after a tumble or at bedtime.",
+      "tags": [
+        "calm",
+        "breathing",
+        "feelings",
+        "mindfulness"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Balloon Breaths",
+              "duration": "3m",
+              "description": "Fill your tummy like a balloon, then let it float away.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "Ocean Breathing",
+              "duration": "3m",
+              "description": "Breathe in with the wave, breathe out with the tide.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Squeeze and Relax",
+              "duration": "3m",
+              "description": "Squeeze your hands tight, tight, tight... and let go.",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "My Happy Place",
+              "duration": "3m",
+              "description": "Close your eyes and imagine somewhere lovely.",
+              "videoUrl": null
+            },
+            {
+              "number": 5,
+              "title": "Slow Like a Snail",
+              "duration": "3m",
+              "description": "The slowest breath in the world.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "cast": [],
+      "year": "2026"
+    },
+    "moonlight-beach": {
+      "id": "moonlight-beach",
+      "title": "Moonlight Beach",
+      "host": "coco",
+      "cast": [
+        "kai",
+        "nova"
+      ],
+      "ageMin": 4,
+      "format": "Series",
+      "motif": "stars",
+      "logline": "Soft lullabies from the quietest beach on the island.",
+      "description": "When the sun goes down, the beach glows. Coco, Kai and Nova sing the island to sleep.",
+      "tags": [
+        "bedtime",
+        "music",
+        "lullaby",
+        "calm"
+      ],
+      "seasons": [
+        {
+          "number": 1,
+          "episodes": [
+            {
+              "number": 1,
+              "title": "Lullaby for the Tide",
+              "duration": "12m",
+              "description": "The sea sings its own song, if you listen.",
+              "videoUrl": null
+            },
+            {
+              "number": 2,
+              "title": "The Glowing Sand",
+              "duration": "12m",
+              "description": "Tiny lights sparkle at the water's edge.",
+              "videoUrl": null
+            },
+            {
+              "number": 3,
+              "title": "Night Birds",
+              "duration": "12m",
+              "description": "Who is singing in the dark?",
+              "videoUrl": null
+            },
+            {
+              "number": 4,
+              "title": "The Sleepy Lighthouse",
+              "duration": "12m",
+              "description": "The lighthouse keeps watch so everyone else can rest.",
+              "videoUrl": null
+            }
+          ]
+        }
+      ],
+      "year": "2026"
+    }
+  },
+  "trail": [
+    {
+      "id": "welcome",
+      "title": "Welcome to Tiva Island",
+      "host": "bloop",
+      "blurb": "Meet the crew and say hello to the island.",
+      "stops": [
+        {
+          "show": "showtiva-crew",
+          "item": "s1e1"
+        },
+        {
+          "show": "bloop-says-hi",
+          "item": "s1e1"
+        },
+        {
+          "show": "puddle-jumpers",
+          "item": "s1e1"
+        },
+        {
+          "show": "nova-sings",
+          "item": "s1e1"
+        },
+        {
+          "show": "bloop-and-the-big-scoop",
+          "item": "s1e1"
+        }
+      ]
+    },
+    {
+      "id": "beach",
+      "title": "Kai's Beach",
+      "host": "kai",
+      "blurb": "Waves, turtles and one very brave surfer.",
+      "stops": [
+        {
+          "show": "kai-catches-a-wave",
+          "item": "s1e1"
+        },
+        {
+          "show": "wild-wonders",
+          "item": "s1e5"
+        },
+        {
+          "show": "kai-catches-a-wave",
+          "item": "s1e2"
+        },
+        {
+          "show": "wild-wonders",
+          "item": "s1e1"
+        },
+        {
+          "show": "kai-catches-a-wave",
+          "item": "s1e3"
+        },
+        {
+          "show": "deep-blue",
+          "item": "s1e1"
+        }
+      ]
+    },
+    {
+      "id": "workshop",
+      "title": "Cog's Workshop",
+      "host": "cog",
+      "blurb": "Count, build and ask big questions.",
+      "stops": [
+        {
+          "show": "number-garden",
+          "item": "s1e1"
+        },
+        {
+          "show": "cogs-workshop",
+          "item": "s1e1"
+        },
+        {
+          "show": "why-cog-why",
+          "item": "s1e1"
+        },
+        {
+          "show": "cogs-workshop",
+          "item": "s1e2"
+        },
+        {
+          "show": "cogs-code-club",
+          "item": "s1e1"
+        }
+      ]
+    },
+    {
+      "id": "stage",
+      "title": "Nova's Stage",
+      "host": "nova",
+      "blurb": "Sing it loud and dance it out.",
+      "stops": [
+        {
+          "show": "nova-sings",
+          "item": "s1e2"
+        },
+        {
+          "show": "nova-sings",
+          "item": "s1e4"
+        },
+        {
+          "show": "novas-dance-party",
+          "item": "feature"
+        },
+        {
+          "show": "star-stage",
+          "item": "s1e1"
+        }
+      ]
+    },
+    {
+      "id": "skatepark",
+      "title": "Zip's Skate Park",
+      "host": "zip",
+      "blurb": "Jump, stretch and roll.",
+      "stops": [
+        {
+          "show": "ready-set-zip",
+          "item": "s1e1"
+        },
+        {
+          "show": "ready-set-zip",
+          "item": "s1e3"
+        },
+        {
+          "show": "zip-zap-skate-park",
+          "item": "s1e1"
+        },
+        {
+          "show": "zip-zap-skate-park",
+          "item": "s1e2"
+        },
+        {
+          "show": "tiva-island-games",
+          "item": "s1e1"
+        }
+      ]
+    },
+    {
+      "id": "moonlight",
+      "title": "Coco's Moonlight Beach",
+      "host": "coco",
+      "blurb": "Slow down, breathe and wind down.",
+      "stops": [
+        {
+          "show": "breathe-with-coco",
+          "item": "s1e1"
+        },
+        {
+          "show": "cocos-sleepy-stories",
+          "item": "s1e1"
+        },
+        {
+          "show": "moonlight-beach",
+          "item": "s1e1"
+        },
+        {
+          "show": "breathe-with-coco",
+          "item": "s1e2"
+        }
+      ]
+    },
+    {
+      "id": "premiere",
+      "title": "The Splash Park Premiere",
+      "host": "bloop",
+      "blurb": "The whole crew's big summer movie. You made it!",
+      "stops": [
+        {
+          "show": "summer-at-splash-park",
+          "item": "feature"
+        }
+      ]
+    }
+  ]
+}
