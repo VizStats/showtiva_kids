@@ -44,9 +44,16 @@ export type AgeBandId = (typeof AGE_BANDS)[number]["id"];
 export interface Profile {
   id: string;
   name: string;
-  /** The character the child picked as their buddy: their avatar everywhere. */
+  /**
+   * The friend who guides this child along the trail. Given out when the
+   * profile is made (each child a different one where possible); the child's
+   * own photo, not a character, is what stands for them everywhere else.
+   */
   character: CharacterId;
+  /** What they may watch. Suggested from the birthday, set by a grown-up. */
   age: AgeBandId;
+  /** Birth month, "2019-04". Month and year only: enough for an age. */
+  birth?: string;
 }
 
 export interface ProfileState {
@@ -75,8 +82,33 @@ function isProfile(value: unknown): value is Profile {
     p.name.trim().length > 0 &&
     p.name.length <= MAX_NAME_LENGTH &&
     CHARACTER_IDS.includes(p.character as CharacterId) &&
-    AGE_BANDS.some((band) => band.id === p.age)
+    AGE_BANDS.some((band) => band.id === p.age) &&
+    (p.birth === undefined || (typeof p.birth === "string" && BIRTH.test(p.birth)))
   );
+}
+
+const BIRTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+/** Whole years since a birth month, as of `now`. */
+export function ageFromBirth(birth: string, now: Date): number {
+  const [year, month] = birth.split("-").map(Number);
+  let age = now.getFullYear() - year;
+  if (now.getMonth() + 1 < month) age -= 1;
+  return Math.max(0, age);
+}
+
+/** The content level that fits an age. */
+export function bandForAge(age: number): AgeBandId {
+  if (age <= 4) return "preschool";
+  if (age <= 8) return "younger";
+  return "older";
+}
+
+/** A trail guide for a new child: one nobody on this device has yet, if any are left. */
+export function nextGuide(list: Profile[]): CharacterId {
+  const taken = new Set(list.map((p) => p.character));
+  const order: CharacterId[] = ["bloop", "kai", "nova", "zip", "cog", "coco"];
+  return order.find((id) => !taken.has(id)) ?? order[list.length % order.length];
 }
 
 /**

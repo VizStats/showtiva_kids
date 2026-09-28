@@ -139,6 +139,34 @@ export function setTrailSeen(profileId: string, seen: number): void {
   updateTrail(profileId, (t) => (t.seen === seen ? t : { ...t, seen }));
 }
 
+/* -------------------------------------------------------------- photos -- */
+
+// A child's photo, as a small square JPEG data URL. It lives in localStorage,
+// not the profiles cookie, which could never hold an image; so the server
+// draws initials first and the photo arrives once the page is in the
+// browser.
+
+const photoKey = (profileId: string) => `stk-photo:${profileId}`;
+
+export function readPhotoRaw(profileId: string): string {
+  return read("local", photoKey(profileId)) ?? "";
+}
+
+/** False when the device has no room left for it. */
+export function savePhoto(profileId: string, dataUrl: string): boolean {
+  try {
+    window.localStorage.setItem(photoKey(profileId), dataUrl);
+  } catch {
+    return false;
+  }
+  window.dispatchEvent(new Event(EVENT));
+  return true;
+}
+
+export function removePhoto(profileId: string): void {
+  write("local", photoKey(profileId), null);
+}
+
 /* ----------------------------------------------------------- grown-ups -- */
 
 const GATE_KEY = "stk-gate";

@@ -9,7 +9,7 @@ import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { SHOWTIVA_URL, cx, tint } from "@/lib/cx";
+import { SHOWTIVA_URL, cx } from "@/lib/cx";
 import type { Character } from "@/lib/catalog-types";
 import {
   clearDevice,
@@ -18,14 +18,15 @@ import {
   parseTimer,
   readGateRaw,
   readTimerRaw,
+  removePhoto,
   setTimer,
   subscribeDevice,
 } from "@/lib/device";
-import { AGE_BANDS, EMPTY_PROFILES, writeProfiles, type AgeBandId, type ProfileState } from "@/lib/profiles";
+import { AGE_BANDS, EMPTY_PROFILES, ageFromBirth, writeProfiles, type AgeBandId, type ProfileState } from "@/lib/profiles";
 import { useClock } from "@/lib/use-client";
 
-import Face from "../_components/Face";
 import Icon from "../_components/Icon";
+import KidAvatar from "../_components/KidAvatar";
 import ParentGate from "../_components/ParentGate";
 
 const TIMER_CHOICES = [null, 15, 30, 45, 60] as const;
@@ -90,22 +91,29 @@ export default function ParentsClient({ characters, state }: { characters: Chara
         <p className="mt-3 text-[1.02rem] text-ink-soft">Everything here stays on this device. There is no account to sign in to.</p>
 
         {/* ---- profiles ---- */}
-        <Panel title="Profiles" icon="profiles" note="Each profile only sees shows for its age.">
+        <Panel title="Your kids" icon="profiles" note="Each child only sees shows for the level you choose.">
           {state.list.length === 0 ? (
             <p className="text-[0.98rem] text-ink-soft">No profiles yet.</p>
           ) : (
             <ul className="divide-y divide-line">
               {state.list.map((profile) => {
-                const b = buddy(profile.character);
+                const guide = buddy(profile.character);
                 return (
                   <li key={profile.id} className="flex flex-wrap items-center gap-4 py-4 first:pt-0 last:pb-0">
-                    <span className="rounded-full bg-(--c) p-[3px]" style={tint(b)}>
-                      <Face character={b} plain className="block size-12" />
-                    </span>
+                    <KidAvatar profile={profile} className="size-14" />
                     <span className="min-w-[7rem] flex-1">
                       <span className="block font-display text-[1.25rem] leading-tight font-medium">{profile.name}</span>
-                      <span className="text-[0.88rem] text-ink-soft">Buddy: {b.name}</span>
+                      <span className="text-[0.88rem] text-ink-soft">
+                        {profile.birth ? `${ageFromBirth(profile.birth, new Date(now))} years old · ` : ""}
+                        Trail guide: {guide.name}
+                      </span>
                     </span>
+                    <Link
+                      href={`/profiles/new?edit=${profile.id}`}
+                      className="inline-flex h-10 items-center rounded-full px-4 text-[0.88rem] font-bold text-ink ring-1 ring-line transition-colors hover:bg-mist"
+                    >
+                      Edit
+                    </Link>
                     <div className="flex flex-wrap gap-1 rounded-full bg-mist p-1" role="radiogroup" aria-label={`Age for ${profile.name}`}>
                       {AGE_BANDS.map((band) => (
                         <button
@@ -135,6 +143,7 @@ export default function ParentsClient({ characters, state }: { characters: Chara
                           type="button"
                           onClick={() => {
                             const list = state.list.filter((p) => p.id !== profile.id);
+                            removePhoto(profile.id);
                             save({ active: state.active === profile.id ? null : state.active, list });
                             setRemoving(null);
                           }}
@@ -162,11 +171,11 @@ export default function ParentsClient({ characters, state }: { characters: Chara
             </ul>
           )}
           <Link
-            href="/profiles?add=1"
+            href="/profiles/new"
             className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-mist px-4 text-[0.92rem] font-bold text-ink transition-colors hover:bg-[#ebe3d6]"
           >
             <Icon name="plus" className="size-5" />
-            Add a profile
+            Add a child
           </Link>
         </Panel>
 

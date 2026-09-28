@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/": ["./data/**"],
     "/profiles": ["./data/**"],
+    "/profiles/new": ["./data/**"],
     "/watch": ["./data/**"],
     "/watch/[id]": ["./data/**"],
     "/trail": ["./data/**"],

@@ -1,22 +1,24 @@
 "use client";
 
-// The trail: a board-game path through six islands, one per friend.
+// The trail: a full-screen adventure map through seven islands, one per
+// friend (see Scenery.tsx for the land itself).
 //
-// Stops sit along a winding road instead of a row. Only the next one is open;
-// watch it (most of it, not just the start) and the buddy the child picked
-// walks along the road to the one after, which pops open. Every island ends
-// in a treasure chest holding that island host's sticker, and the next island
-// only opens once the chest has been opened, so the reward is always claimed.
+// Stops sit along a road that winds from side to side across the whole map.
+// Only the next one is open; watch it (most of it, not just the start) and
+// the buddy the child picked walks along the road to the one after, which
+// pops open. Every island ends in a treasure chest holding that island host's
+// sticker, and the next island only opens once the chest has been opened, so
+// the reward is always claimed.
 //
-// Geometry is computed in pixels from the column's measured width, because
-// the buddy walks the road with CSS motion paths (offset-path), and those take
+// Geometry is computed in pixels from the map's measured width, because the
+// buddy walks the road with CSS motion paths (offset-path), and those take
 // real coordinates rather than percentages.
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { cx, tint } from "@/lib/cx";
 import type { Character as CharacterData, ResolvedChapter, ResolvedStop } from "@/lib/catalog-types";
-import { markStopDone, openChest, parseTrail, readTrailRaw, setTrailSeen, subscribeDevice } from "@/lib/device";
+import { markStopDone, openChest, parseTrail, readTrailRaw, setTrailSeen, subscribeDevice, type TrailProgress } from "@/lib/device";
 import { currentIndex, isComplete, trailItems, WATCHED_FRACTION, type TrailItem } from "@/lib/trail";
 import { parseProgress, readRaw, resumeSeconds, saveProgress } from "@/lib/watch-progress";
 
@@ -27,6 +29,7 @@ import Face from "../_components/Face";
 import Icon from "../_components/Icon";
 import KidsPlayer from "../_components/KidsPlayer";
 import ShowArt from "../_components/ShowArt";
+import { Island, type Rect } from "./Scenery";
 
 interface TrailClientProps {
   chapters: ResolvedChapter[];
@@ -39,12 +42,6 @@ interface TrailClientProps {
 
 /* ---------------------------------------------------------- geometry -- */
 
-/** Side-to-side swing of the road, as a share of its full reach. */
-const SWING = [0, -0.7, -1, -0.7, 0, 0.7, 1, 0.7];
-const BANNER_TOP = 20;
-const BANNER_H = 176;
-const FIRST_STOP_GAP = 108;
-const STEP = 136;
 const NODE = 84;
 const BIG_NODE = 100;
 const CHEST = 96;
@@ -61,46 +58,110 @@ interface Placed extends Point {
   size: number;
 }
 
-function layoutTrail(chapters: ResolvedChapter[], width: number) {
-  const cx = width / 2;
-  const reach = Math.min(124, width * 0.26);
-  const nodes: Placed[] = [];
-  const banners: { y: number }[] = [];
-  const zones: { top: number; bottom: number }[] = [];
-  let y = 0;
-  let swing = 0;
-
-  for (const chapter of chapters) {
-    const top = y;
-    banners.push({ y: y + BANNER_TOP });
-    y += BANNER_TOP + BANNER_H + FIRST_STOP_GAP;
-
-    const count = chapter.stops.length + 1;
-    for (let i = 0; i < count; i += 1) {
-      const stop = chapter.stops[i] as ResolvedStop | undefined;
-      const size = !stop ? CHEST : stop.format === "Movie" || stop.format === "Special" ? BIG_NODE : NODE;
-      nodes.push({ x: cx + reach * SWING[swing % SWING.length], y, size });
-      swing += 1;
-      y += STEP;
-    }
-    zones.push({ top, bottom: y - STEP + 100 });
-    y += 44;
-  }
-
-  return { nodes, banners, zones, height: y + 24, cx };
+interface Sign extends Rect {
+  /** Which side of the map the sign stands on: across from the road. */
+  side: "left" | "right";
 }
 
-/** A smooth road through the points: each leg an S-curve with vertical ends. */
+/**
+ * How far the road swings for the i-th stop, from -1 (far left) to 1 (far
+ * right). A full swing every six stops or so, so the road is always on its
+ * way across the map and never runs straight down, with a slower second
+ * wave varying how wide each swing goes.
+ */
+function sway(i: number): number {
+  return Math.sin(i * 1.04 + 0.4) * (0.82 + 0.18 * Math.sin(i * 0.37 + 1.1));
+}
+
+/** Catmull-Rom through the points, as cubic Bézier legs: a road with no kinks. */
+function legs(points: Point[]): [Point, Point, Point, Point][] {
+  const out: [Point, Point, Point, Point][] = [];
+  for (let i = 0; i < points.length - 1; i += 1) {
+    const p0 = points[i - 1] ?? points[i];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2] ?? p2;
+    out.push([
+      p1,
+      { x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6 },
+      { x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6 },
+      p2,
+    ]);
+  }
+  return out;
+}
+
 function road(points: Point[]): string {
   if (points.length === 0) return "";
-  let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
-  for (let i = 1; i < points.length; i += 1) {
-    const a = points[i - 1];
-    const b = points[i];
-    const mid = (a.y + b.y) / 2;
-    d += ` C ${a.x.toFixed(1)} ${mid.toFixed(1)} ${b.x.toFixed(1)} ${mid.toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;
-  }
+  const f = (n: number) => n.toFixed(1);
+  let d = `M ${f(points[0].x)} ${f(points[0].y)}`;
+  for (const [, c1, c2, p] of legs(points)) d += ` C ${f(c1.x)} ${f(c1.y)} ${f(c2.x)} ${f(c2.y)} ${f(p.x)} ${f(p.y)}`;
   return d;
+}
+
+/** Points along the road, for keeping scenery off it. */
+function sampleRoad(points: Point[], perLeg = 10): Point[] {
+  const out: Point[] = [];
+  for (const [a, b, c, d] of legs(points)) {
+    for (let k = 0; k < perLeg; k += 1) {
+      const t = k / perLeg;
+      const u = 1 - t;
+      out.push({
+        x: u * u * u * a.x + 3 * u * u * t * b.x + 3 * u * t * t * c.x + t * t * t * d.x,
+        y: u * u * u * a.y + 3 * u * u * t * b.y + 3 * u * t * t * c.y + t * t * t * d.y,
+      });
+    }
+  }
+  if (points.length) out.push(points[points.length - 1]);
+  return out;
+}
+
+function layoutTrail(chapters: ResolvedChapter[], width: number) {
+  const compact = width < 700;
+  const cx = width / 2;
+  const reach = compact ? width * 0.29 : Math.min(width * 0.31, 420);
+  // Enough between stops that one stop's name never meets the next one's
+  // "Up next" tag.
+  const step = compact ? 154 : 164;
+  const signH = compact ? 148 : 156;
+  const signW = compact ? Math.min(width - 32, 440) : Math.min(460, width * 0.34);
+  const margin = Math.max(24, width * 0.05);
+
+  const nodes: Placed[] = [];
+  const signs: Sign[] = [];
+  const tops: number[] = [];
+  // The first sign starts below the floating scoreboard.
+  let y = compact ? 112 : 124;
+  let i = 0;
+
+  chapters.forEach((chapter, ci) => {
+    tops.push(ci === 0 ? 0 : y - (compact ? 56 : 70));
+
+    // The sign stands across from where the road runs as it passes.
+    const firstX = cx + reach * sway(i);
+    const firstY = y + signH + (compact ? 96 : 88);
+    const prev = nodes[nodes.length - 1];
+    const middle = y + signH / 2;
+    const roadX = prev ? prev.x + (firstX - prev.x) * ((middle - prev.y) / (firstY - prev.y)) : firstX;
+    const onLeft = roadX > cx;
+    const x = compact ? (width - signW) / 2 : onLeft ? margin : width - signW - margin;
+    signs.push({ x, y, w: signW, h: signH, side: onLeft ? "left" : "right" });
+
+    y = firstY;
+    const count = chapter.stops.length + 1;
+    for (let k = 0; k < count; k += 1) {
+      const stop = chapter.stops[k] as ResolvedStop | undefined;
+      const size = !stop ? CHEST : stop.format === "Movie" || stop.format === "Special" ? BIG_NODE : NODE;
+      nodes.push({ x: cx + reach * sway(i), y, size });
+      i += 1;
+      y += step;
+    }
+    y += compact ? 72 : 92;
+  });
+
+  const height = y + 40;
+  const zones = tops.map((top, k) => ({ top, bottom: tops[k + 1] ?? height }));
+  return { nodes, signs, zones, height, cx, compact, roadD: road(nodes), samples: sampleRoad(nodes) };
 }
 
 /** Where the buddy stands for a stop: beside it, on the side with more room. */
@@ -146,6 +207,7 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
   const [say, setSay] = useState<{ text: string; n: number } | null>(null);
   const [shake, setShake] = useState<{ index: number; n: number } | null>(null);
   const [arrived, setArrived] = useState(false);
+  const [book, setBook] = useState(false);
 
   // The buddy waits while a show or a prize is on screen, then walks.
   const target = Math.min(current, items.length - 1);
@@ -244,139 +306,125 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
   const buddyWidth = BUDDY_H * buddy.aspect;
   const stands = geo ? geo.nodes.map((node) => standFor(node, geo.cx, buddyWidth)) : [];
   const here = stands[at];
+  const firstOf = (ci: number) => items.findIndex((item) => item.chapter === ci);
 
   return (
-    <main className="mx-auto grid max-w-[1180px] grid-cols-[320px_minmax(0,560px)] items-start justify-center gap-[clamp(2rem,5vw,4.5rem)] px-6 pt-6 pb-24 max-[960px]:grid-cols-1 max-[960px]:gap-6 max-[640px]:px-4">
-      {/* ---- the scoreboard ---- */}
-      <aside className="sticky top-24 flex flex-col gap-4 max-[960px]:static" style={tint(buddy)}>
-        <div className="rounded-panel bg-paper p-6 ring-1 ring-line">
-          <div className="flex items-center gap-4">
-            <span className="rounded-full bg-(--c) p-[4px]">
-              <Face character={buddy} plain className="block size-14" />
+    <main className="relative">
+      {/* ---- the scoreboard, floating over the map ---- */}
+      <div className="pointer-events-none sticky top-[72px] z-40 -mb-[76px] flex justify-center px-3 pt-3 max-[640px]:top-16">
+        <div
+          className="pointer-events-auto flex max-w-full items-center gap-3 rounded-full bg-paper/92 py-1.5 pr-1.5 pl-1.5 shadow-lift backdrop-blur-xl max-[420px]:gap-2"
+          style={tint(buddy)}
+        >
+          <span className="flex-none rounded-full bg-(--c) p-[3px]">
+            <Face character={buddy} plain className="block size-10" />
+          </span>
+          <span className="min-w-0 pr-1">
+            <span className="block truncate font-display text-[1.05rem] leading-tight font-medium">
+              {name ? `${name}'s Trail` : "The Trail"}
             </span>
-            <div className="min-w-0">
-              <h1 className="font-display text-[1.7rem] leading-tight font-medium">{name ? `${name}'s Trail` : "The Trail"}</h1>
-              <p className="text-[0.92rem] font-semibold text-ink-soft">Guided by {buddy.name}</p>
-            </div>
-          </div>
-
-          <dl className="mt-6 grid grid-cols-2 divide-x divide-line">
-            <div className="pr-4">
-              <dd className="flex items-center gap-1.5 font-display text-[1.7rem] leading-none font-medium">
-                <Icon name="star" className="size-6 text-[#ffb800]" />
-                {doneStops}
-              </dd>
-              <dt className="mt-1.5 text-[0.8rem] font-semibold text-ink-faint">of {totalStops} stars</dt>
-            </div>
-            <div className="pl-4">
-              <dd className="font-display text-[1.7rem] leading-none font-medium">
-                {Math.min(currentChapter + 1, chapters.length)}
-                <span className="text-[1rem] text-ink-faint"> / {chapters.length}</span>
-              </dd>
-              <dt className="mt-1.5 text-[0.8rem] font-semibold text-ink-faint">island</dt>
-            </div>
-          </dl>
-
-          <div className="mt-5 h-2 overflow-hidden rounded-full bg-mist">
-            <span
-              className="block h-full rounded-full bg-(--c) transition-[width] duration-700 ease-out-soft"
-              style={{ width: `${totalStops ? (doneStops / totalStops) * 100 : 0}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="rounded-panel bg-paper p-6 ring-1 ring-line">
-          <p className="flex items-center justify-between text-[0.78rem] font-bold tracking-[0.12em] text-ink-faint uppercase">
-            Sticker book
-            <span className="tracking-normal text-ink-soft normal-case">
-              {stickers} of {chapters.length}
+            <span className="block truncate text-[0.78rem] font-semibold text-ink-faint max-[420px]:hidden">
+              Island {Math.min(currentChapter + 1, chapters.length)} · {chapters[currentChapter]?.title}
             </span>
-          </p>
-          <ul className="mt-4 grid grid-cols-4 gap-3">
-            {chapters.map((chapter) => {
-              const got = progress.chests.includes(chapter.id);
-              const host = find(chapter.host);
-              return (
-                <li key={chapter.id} title={got ? `${host.name}'s sticker` : "Not yet"}>
-                  <span
-                    className={cx(
-                      "grid aspect-square place-items-center rounded-full p-[3px] transition-[filter,opacity] duration-500",
-                      got ? "bg-(--c)" : "border-2 border-dashed border-ink/15 opacity-50 grayscale",
-                    )}
-                    style={tint(host)}
-                  >
-                    <Face character={host} plain className="block size-full" />
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+          </span>
+          <span className="h-8 w-px flex-none bg-line" />
+          <span className="flex flex-none items-center gap-1 font-display text-[1.1rem] font-medium" aria-label={`${doneStops} of ${totalStops} stars`}>
+            <Icon name="star" className="size-5 text-[#ffb800]" />
+            {doneStops}
+            <span className="text-[0.85rem] text-ink-faint">/{totalStops}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setBook(true)}
+            className="flex h-11 flex-none cursor-pointer items-center gap-2 rounded-full bg-mist pr-3.5 pl-1.5 transition-colors hover:bg-[#e9e2d6]"
+            aria-label={`Sticker book, ${stickers} of ${chapters.length}`}
+          >
+            <span className="flex -space-x-2.5">
+              {chapters.slice(0, 3).map((chapter) => {
+                const host = find(chapter.host);
+                const got = progress.chests.includes(chapter.id);
+                return (
+                  <Face
+                    key={chapter.id}
+                    character={host}
+                    plain
+                    className={cx("size-8 ring-2 ring-mist", !got && "opacity-45 grayscale")}
+                  />
+                );
+              })}
+            </span>
+            <span className="text-[0.85rem] font-bold">
+              {stickers}/{chapters.length}
+            </span>
+          </button>
         </div>
-      </aside>
+      </div>
 
-      {/* ---- the trail itself ---- */}
-      <div ref={ref} className="relative" style={{ height: geo?.height ?? 900 }}>
+      {/* ---- the map ---- */}
+      <div ref={ref} className="relative w-full overflow-hidden" style={{ height: geo?.height ?? 1200 }}>
         {geo && (
           <>
-            {/* Islands behind everything. */}
-            {geo.zones.map((zone, ci) => {
-              const host = find(chapters[ci].host);
-              const reached = items.findIndex((item) => item.chapter === ci) <= current;
-              return (
-                <div
-                  key={chapters[ci].id}
-                  aria-hidden
-                  className={cx("absolute inset-x-0 rounded-stage transition-colors duration-700", reached ? "bg-(--c-soft)" : "bg-mist")}
-                  style={{ ...tint(host), top: zone.top, height: zone.bottom - zone.top }}
-                >
-                </div>
-              );
-            })}
+            {/* The islands, one per friend. */}
+            {geo.zones.map((zone, ci) => (
+              <Island
+                key={chapters[ci].id}
+                index={ci}
+                chapter={chapters[ci]}
+                zone={zone}
+                width={width}
+                roadD={geo.roadD}
+                roadSamples={geo.samples}
+                keepClear={geo.signs}
+                reached={firstOf(ci) <= current}
+                compact={geo.compact}
+              />
+            ))}
 
-            {/* The road: all of it dashed, the part already walked solid. */}
-            <svg className="pointer-events-none absolute inset-0 overflow-visible" width={width} height={geo.height} aria-hidden>
-              <path d={road(geo.nodes)} fill="none" stroke="#ffffff" strokeWidth="22" strokeLinecap="round" />
-              <path d={road(geo.nodes)} fill="none" stroke="rgb(30 26 60 / 0.13)" strokeWidth="5" strokeLinecap="round" strokeDasharray="2 14" />
+            {/* The road: a sandy path, the stretch already walked marked in the buddy's colour. */}
+            <svg className="pointer-events-none absolute inset-0" width={width} height={geo.height} aria-hidden>
+              <path d={geo.roadD} fill="none" stroke="#e2c894" strokeWidth={geo.compact ? 40 : 50} strokeLinecap="round" strokeLinejoin="round" />
+              <path d={geo.roadD} fill="none" stroke="#f8ecd1" strokeWidth={geo.compact ? 32 : 40} strokeLinecap="round" strokeLinejoin="round" />
+              <path d={geo.roadD} fill="none" stroke="#e2c894" strokeWidth="4" strokeLinecap="round" strokeDasharray="0.1 16" />
               {at > 0 && (
                 <path
                   d={road(geo.nodes.slice(0, at + 1))}
                   fill="none"
                   stroke={buddy.color}
-                  strokeOpacity="0.55"
-                  strokeWidth="10"
+                  strokeOpacity="0.5"
+                  strokeWidth="9"
                   strokeLinecap="round"
                 />
               )}
             </svg>
 
-            {/* Island banners, with each host stepping out of theirs. */}
-            {geo.banners.map((banner, ci) => {
+            {/* Island signs, each host stepping out of theirs. */}
+            {geo.signs.map((sign, ci) => {
               const chapter = chapters[ci];
               const host = find(chapter.host);
-              const firstItem = items.findIndex((item) => item.chapter === ci);
-              const reached = firstItem <= current;
+              const reached = firstOf(ci) <= current;
               const done = chapter.stops.filter((s) => progress.done.includes(s.id)).length;
               return (
                 <section
                   key={chapter.id}
-                  className="absolute inset-x-3 z-10"
-                  style={{ ...tint(host), top: banner.y, height: BANNER_H }}
+                  className="absolute z-10"
+                  style={{ ...tint(host), left: sign.x, top: sign.y, width: sign.w, height: sign.h }}
                   aria-label={`Island ${ci + 1}: ${chapter.title}`}
                 >
                   <div
                     className={cx(
-                      "relative h-full overflow-hidden rounded-panel p-5 pr-[38%] transition-colors duration-700",
-                      reached ? "bg-(--c) text-(--c-on)" : "bg-[#e7e1d6] text-ink-faint",
+                      "relative h-full overflow-hidden rounded-panel p-5 pr-[38%] shadow-pop transition-colors duration-700",
+                      reached ? "bg-(--c) text-(--c-on)" : "bg-paper/85 text-ink-faint backdrop-blur",
                     )}
                   >
-                    <p className="relative text-[0.72rem] font-bold tracking-[0.14em] uppercase opacity-75">
-                      {reached ? `Island ${ci + 1}` : `Island ${ci + 1} · locked`}
+                    <p className="flex items-center gap-1.5 text-[0.72rem] font-bold tracking-[0.14em] uppercase opacity-75">
+                      {!reached && <Icon name="lock" className="size-3.5" />}
+                      Island {ci + 1}
                     </p>
-                    <h2 className="relative mt-1 font-display text-[clamp(1.35rem,3.6vw,1.75rem)] leading-[1.05] font-medium text-balance">
+                    <h2 className="mt-1 font-display text-[clamp(1.3rem,3.4vw,1.7rem)] leading-[1.05] font-medium text-balance">
                       {chapter.title}
                     </h2>
-                    <p className="relative mt-1.5 line-clamp-2 text-[0.9rem] leading-snug font-medium opacity-90">{chapter.blurb}</p>
-                    <p className="relative mt-3 flex gap-1" aria-label={`${done} of ${chapter.stops.length} stars`}>
+                    <p className="mt-1.5 line-clamp-2 text-[0.88rem] leading-snug font-medium opacity-90">{chapter.blurb}</p>
+                    <p className="mt-2.5 flex gap-1" aria-label={`${done} of ${chapter.stops.length} stars`}>
                       {chapter.stops.map((stop) => (
                         <Icon
                           key={stop.id}
@@ -388,8 +436,8 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
                   </div>
                   <span
                     className={cx(
-                      "pointer-events-none absolute right-2 bottom-0 h-[118%] transition-[filter,opacity] duration-700",
-                      !reached && "opacity-45 grayscale",
+                      "pointer-events-none absolute right-2 bottom-0 h-[122%] transition-[filter,opacity] duration-700",
+                      !reached && "opacity-50 grayscale",
                     )}
                   >
                     <Character character={host} decorative className="h-full" />
@@ -397,7 +445,6 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
                 </section>
               );
             })}
-
             {/* The stops. */}
             {items.map((item, index) => {
               const node = geo.nodes[index];
@@ -444,14 +491,6 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
               const movie = stop.format === "Movie" || stop.format === "Special";
               return (
                 <div key={item.id}>
-                  {state === "current" && !walking && (
-                    <span
-                      className="pointer-events-none absolute z-20 -translate-x-1/2 animate-float rounded-full bg-ink px-3 py-1 text-[0.72rem] font-extrabold tracking-[0.08em] whitespace-nowrap text-white uppercase"
-                      style={{ left: node.x, top: node.y - node.size / 2 - 36 }}
-                    >
-                      {movie ? "Movie time" : "Up next"}
-                    </span>
-                  )}
                   <button
                     ref={(el) => {
                       nodeRefs.current[index] = el;
@@ -505,12 +544,19 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
                   {state !== "locked" && (
                     <span
                       className={cx(
-                        "pointer-events-none absolute z-20 w-[150px] -translate-x-1/2 text-center text-[0.8rem] leading-tight font-bold",
+                        "pointer-events-none absolute z-20 flex w-[150px] -translate-x-1/2 flex-col items-center text-center text-[0.8rem] leading-tight font-bold",
                         state === "current" ? "text-ink" : "text-ink-soft",
                       )}
                       style={{ left: node.x, top: node.y + node.size / 2 + 8 }}
                     >
-                      {stop.title}
+                      {/* The waiting stop is marked under itself, never above, so the
+                          tag cannot land on the name of the stop before it. */}
+                      {state === "current" && !walking && (
+                        <span className="mb-1 animate-float rounded-full bg-ink px-2.5 py-0.5 text-[0.66rem] font-extrabold tracking-[0.08em] whitespace-nowrap text-white uppercase">
+                          {movie ? "Movie time" : "Up next"}
+                        </span>
+                      )}
+                      <span className="rounded-full bg-paper/80 px-2 py-0.5 backdrop-blur-sm">{stop.title}</span>
                     </span>
                   )}
                 </div>
@@ -641,6 +687,8 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
           }}
         />
       )}
+
+      {book && <StickerBook chapters={chapters} characters={characters} progress={progress} onClose={() => setBook(false)} />}
     </main>
   );
 }
@@ -763,6 +811,68 @@ function Reward({
         >
           {last ? "Hooray!" : "Keep going!"}
         </button>
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------- sticker book -- */
+
+function StickerBook({
+  chapters,
+  characters,
+  progress,
+  onClose,
+}: {
+  chapters: ResolvedChapter[];
+  characters: CharacterData[];
+  progress: TrailProgress;
+  onClose: () => void;
+}) {
+  const got = chapters.filter((c) => progress.chests.includes(c.id)).length;
+  return (
+    <div className="fixed inset-0 z-[75] grid animate-fade place-items-center bg-ink/45 p-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="book-title">
+      <button type="button" aria-label="Close" className="absolute inset-0 cursor-default" onClick={onClose} />
+      <div className="relative w-full max-w-[520px] animate-sheet rounded-stage bg-paper p-7 shadow-lift max-[480px]:p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 id="book-title" className="font-display text-[1.7rem] leading-tight font-medium">
+              Sticker book
+            </h2>
+            <p className="mt-1 text-[0.95rem] text-ink-soft">
+              {got} of {chapters.length} collected. Finish an island to open its chest.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="grid size-11 flex-none cursor-pointer place-items-center rounded-full text-ink-soft transition-colors hover:bg-mist hover:text-ink"
+          >
+            <Icon name="close" className="size-5" />
+          </button>
+        </div>
+        <ul className="mt-6 grid grid-cols-4 gap-x-3 gap-y-5 max-[420px]:grid-cols-3">
+          {chapters.map((chapter) => {
+            const host = characters.find((c) => c.id === chapter.host) ?? characters[0];
+            const have = progress.chests.includes(chapter.id);
+            return (
+              <li key={chapter.id} className="flex flex-col items-center text-center" style={tint(host)}>
+                <span
+                  className={cx(
+                    "grid aspect-square w-full max-w-[92px] place-items-center rounded-full p-[4px]",
+                    have ? "bg-(--c)" : "border-2 border-dashed border-ink/15",
+                  )}
+                >
+                  <Face character={host} plain className={cx("block size-full", !have && "opacity-35 grayscale")} />
+                </span>
+                <span className={cx("mt-2 text-[0.78rem] leading-tight font-bold", have ? "text-ink" : "text-ink-faint")}>
+                  {chapter.title}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </div>
   );

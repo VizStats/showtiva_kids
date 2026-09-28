@@ -11,7 +11,7 @@ import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
-import { cx, tint } from "@/lib/cx";
+import { cx } from "@/lib/cx";
 import type { Character, Playable, ShowLite } from "@/lib/catalog-types";
 import {
   parseFavourites,
@@ -24,7 +24,7 @@ import { writeProfiles, type Profile, type ProfileState } from "@/lib/profiles";
 import { useClock } from "@/lib/use-client";
 
 import Discover from "./Discover";
-import Face from "./Face";
+import KidAvatar from "./KidAvatar";
 import Icon, { type IconName } from "./Icon";
 import ShowCard from "./ShowCard";
 
@@ -57,7 +57,6 @@ export default function KidsChrome({ characters, shows, library, profiles, activ
   return (
     <div className="min-h-dvh pb-[calc(72px+env(safe-area-inset-bottom))] min-[769px]:pb-0">
       <TopBar
-        characters={characters}
         profiles={profiles}
         active={active}
         onSearch={() => setPanel("search")}
@@ -85,13 +84,11 @@ const NAV: { href: string; label: string; icon: IconName; match: (path: string) 
 ];
 
 function TopBar({
-  characters,
   profiles,
   active,
   onSearch,
   onFavourites,
 }: {
-  characters: Character[];
   profiles: ProfileState;
   active: Profile | null;
   onSearch: () => void;
@@ -154,7 +151,7 @@ function TopBar({
           >
             <Icon name="lock" className="size-5" />
           </Link>
-          <ProfileSwitcher characters={characters} profiles={profiles} active={active} />
+          <ProfileSwitcher profiles={profiles} active={active} />
         </div>
       </div>
     </header>
@@ -188,10 +185,9 @@ function TimerChip() {
   );
 }
 
-function ProfileSwitcher({ characters, profiles, active }: { characters: Character[]; profiles: ProfileState; active: Profile | null }) {
+function ProfileSwitcher({ profiles, active }: { profiles: ProfileState; active: Profile | null }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const buddy = (profile: Profile) => characters.find((c) => c.id === profile.character) ?? characters[0];
 
   useEffect(() => {
     if (!open) return;
@@ -208,7 +204,6 @@ function ProfileSwitcher({ characters, profiles, active }: { characters: Charact
     );
   }
 
-  const me = buddy(active);
   const others = profiles.list.filter((p) => p.id !== active.id);
 
   return (
@@ -218,12 +213,9 @@ function ProfileSwitcher({ characters, profiles, active }: { characters: Charact
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={`${active.name}'s profile`}
-        style={tint(me)}
         className="ml-1 flex cursor-pointer items-center gap-2 rounded-full p-1 pr-3 transition-colors hover:bg-mist max-[640px]:pr-1"
       >
-        <span className="rounded-full bg-(--c) p-[3px]">
-          <Face character={me} plain className="block size-9" />
-        </span>
+        <KidAvatar profile={active} className="size-10 ring-2 ring-paper" />
         <span className="max-w-[7rem] truncate font-display text-[1.02rem] font-medium max-[640px]:hidden">{active.name}</span>
       </button>
 
@@ -232,27 +224,21 @@ function ProfileSwitcher({ characters, profiles, active }: { characters: Charact
           {others.length > 0 && (
             <>
               <p className="px-3 pt-2 pb-1 text-[0.72rem] font-bold tracking-[0.14em] text-ink-faint uppercase">Switch to</p>
-              {others.map((profile) => {
-                const b = buddy(profile);
-                return (
-                  <button
-                    key={profile.id}
-                    type="button"
-                    onClick={() => {
-                      writeProfiles({ ...profiles, active: profile.id });
-                      setOpen(false);
-                      router.refresh();
-                    }}
-                    style={tint(b)}
-                    className="flex w-full cursor-pointer items-center gap-3 rounded-2xl p-2 text-left transition-colors hover:bg-mist"
-                  >
-                    <span className="rounded-full bg-(--c) p-[3px]">
-                      <Face character={b} plain className="block size-10" />
-                    </span>
-                    <span className="font-display text-[1.1rem] font-medium">{profile.name}</span>
-                  </button>
-                );
-              })}
+              {others.map((profile) => (
+                <button
+                  key={profile.id}
+                  type="button"
+                  onClick={() => {
+                    writeProfiles({ ...profiles, active: profile.id });
+                    setOpen(false);
+                    router.refresh();
+                  }}
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-2xl p-2 text-left transition-colors hover:bg-mist"
+                >
+                  <KidAvatar profile={profile} className="size-11" />
+                  <span className="font-display text-[1.1rem] font-medium">{profile.name}</span>
+                </button>
+              ))}
               <div className="my-1.5 h-px bg-line" />
             </>
           )}
