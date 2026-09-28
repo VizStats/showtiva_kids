@@ -167,30 +167,6 @@ export function removePhoto(profileId: string): void {
   write("local", photoKey(profileId), null);
 }
 
-/* ----------------------------------------------------------- grown-ups -- */
-
-const GATE_KEY = "stk-gate";
-/** A passed gate holds for a few minutes, so a grown-up changing several
- *  settings is not asked a sum between each one. */
-const GATE_HOLD_MS = 5 * 60_000;
-
-export function readGateRaw(): string {
-  return read("session", GATE_KEY) ?? "";
-}
-
-export function gateOpen(raw: string, now = Date.now()): boolean {
-  const until = Number(raw);
-  return Number.isFinite(until) && until > now;
-}
-
-export function openGate(): void {
-  write("session", GATE_KEY, String(Date.now() + GATE_HOLD_MS));
-}
-
-export function closeGate(): void {
-  write("session", GATE_KEY, null);
-}
-
 /* --------------------------------------------------------------- reset -- */
 
 /** Forgets everything this app stored on the device except the profiles

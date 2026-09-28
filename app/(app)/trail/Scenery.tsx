@@ -11,7 +11,7 @@
 
 import type { CharacterId, ResolvedChapter } from "@/lib/catalog-types";
 
-import { seeded } from "../_components/ShowArt";
+import { seeded } from "@/app/_components/ShowArt";
 
 export type Theme = "meadow" | "beach" | "hills" | "twilight" | "park" | "night" | "splash";
 

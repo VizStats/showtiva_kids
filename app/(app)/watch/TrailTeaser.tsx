@@ -12,9 +12,9 @@ import type { Character as CharacterData, ResolvedChapter } from "@/lib/catalog-
 import { parseTrail, readTrailRaw, subscribeDevice } from "@/lib/device";
 import { currentIndex, trailItems } from "@/lib/trail";
 
-import Character from "../_components/Character";
-import Chest from "../_components/Chest";
-import Icon from "../_components/Icon";
+import Character from "@/app/_components/Character";
+import Chest from "@/app/_components/Chest";
+import Icon from "@/app/_components/Icon";
 
 interface TrailTeaserProps {
   chapters: ResolvedChapter[];
@@ -43,13 +43,15 @@ export default function TrailTeaser({ chapters, buddy, profileId }: TrailTeaserP
         : `Next stop: ${item.stop.title}`;
 
   return (
-    <section className="mx-auto mt-[clamp(2.5rem,4vw,3.5rem)] max-w-[1320px] px-6 max-[640px]:px-4">
+    <section className="@container mx-auto mt-[clamp(2.5rem,4vw,3.5rem)] max-w-[1320px] px-6 max-[640px]:px-4">
+      {/* Laid out by the card's own width, not the screen's: beside the
+          sidebar it has less room than the viewport suggests. */}
       <Link
         href="/trail"
         style={tint(buddy)}
-        className="group relative mt-12 flex items-center gap-6 rounded-stage bg-(--c-soft) py-6 pr-6 pl-[clamp(150px,16vw,200px)] transition-transform duration-300 ease-out-soft hover:-translate-y-0.5 max-[760px]:flex-col max-[760px]:items-start max-[760px]:pt-[150px] max-[760px]:pl-6"
+        className="group relative mt-12 flex items-center gap-6 rounded-stage bg-(--c-soft) py-6 pr-6 pl-[200px] transition-transform duration-300 ease-out-soft hover:-translate-y-0.5 @max-[720px]:flex-col @max-[720px]:items-start @max-[720px]:pt-[150px] @max-[720px]:pl-6"
       >
-        <span className="pointer-events-none absolute bottom-0 left-4 h-[calc(100%+56px)] max-h-[230px] max-[760px]:top-[-48px] max-[760px]:bottom-auto max-[760px]:h-[190px]">
+        <span className="pointer-events-none absolute bottom-0 left-4 h-[calc(100%+56px)] max-h-[230px] @max-[720px]:top-[-48px] @max-[720px]:bottom-auto @max-[720px]:h-[190px]">
           <span className="block h-full animate-bob">
             <Character character={buddy} decorative className="h-full origin-bottom transition-transform duration-500 ease-spring group-hover:-rotate-3" />
           </span>
@@ -68,7 +70,7 @@ export default function TrailTeaser({ chapters, buddy, profileId }: TrailTeaserP
         </div>
 
         {/* This island, drawn small. */}
-        <ol className="flex flex-none items-center" aria-label={`${chapter.title} progress`}>
+        <ol className="flex flex-none items-center @min-[720px]:@max-[940px]:hidden" aria-label={`${chapter.title} progress`}>
           {islandItems.map((i, n) => {
             const index = items.indexOf(i);
             const state = index < current ? "done" : index === current ? "current" : "locked";
@@ -96,7 +98,7 @@ export default function TrailTeaser({ chapters, buddy, profileId }: TrailTeaserP
           })}
         </ol>
 
-        <span className="inline-flex h-13 flex-none items-center gap-2 rounded-full bg-ink px-6 text-[1rem] font-bold text-white transition-transform group-hover:translate-x-0.5 max-[760px]:w-full max-[760px]:justify-center">
+        <span className="inline-flex h-13 flex-none items-center gap-2 rounded-full bg-ink px-6 text-[1rem] font-bold text-white transition-transform group-hover:translate-x-0.5 @max-[720px]:w-full @max-[720px]:justify-center">
           {allDone ? "See my trail" : current === 0 ? "Let's go" : "Keep going"}
           <Icon name="chevron-right" className="size-5" />
         </span>

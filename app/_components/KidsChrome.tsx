@@ -1,7 +1,9 @@
 "use client";
 
-// The frame around every in-app page: the top bar, the phone's bottom tab
-// bar, search, favourites and the profile switcher.
+// The frame around every in-app page. On wide screens, a sidebar in the
+// watching child's buddy's colour with a search bar over the content; below
+// that, the top bar with the profile switcher, and on phones the bottom tab
+// bar. Search and favourites open from all of them.
 //
 // The navigation is deliberately short. A child needs "home", "my friends",
 // "find something" and "my favourites", each a picture before it is a word.
@@ -12,7 +14,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 import { cx } from "@/lib/cx";
-import type { Character, Playable, ShowLite } from "@/lib/catalog-types";
+import type { Character, CharacterId, Playable, ShowLite } from "@/lib/catalog-types";
 import {
   parseFavourites,
   parseTimer,
@@ -24,21 +26,25 @@ import { writeProfiles, type Profile, type ProfileState } from "@/lib/profiles";
 import { useClock } from "@/lib/use-client";
 
 import Discover from "./Discover";
-import KidAvatar from "./KidAvatar";
+import Face from "./Face";
 import Icon, { type IconName } from "./Icon";
+import KidAvatar from "./KidAvatar";
 import ShowCard from "./ShowCard";
+import Sidebar from "./Sidebar";
 
 export interface ChromeProps {
   characters: Character[];
-  /** Everything this profile may watch, for search and favourites. */
+  /** Everything this child may watch, for search and favourites. */
   shows: ShowLite[];
-  /** Every episode and movie this profile may play, for Discover. */
+  /** Every episode and movie this child may play, for Discover. */
   library: Playable[];
   profiles: ProfileState;
   active: Profile | null;
+  /** The watching child's buddy, if they have picked one. */
+  buddy: CharacterId | null;
 }
 
-export default function KidsChrome({ characters, shows, library, profiles, active, children }: ChromeProps & { children: ReactNode }) {
+export default function KidsChrome({ characters, shows, library, profiles, active, buddy, children }: ChromeProps & { children: ReactNode }) {
   const [panel, setPanel] = useState<"search" | "favourites" | null>(null);
 
   // Lock the page behind an open panel, and close it on Escape.
@@ -55,10 +61,20 @@ export default function KidsChrome({ characters, shows, library, profiles, activ
   }, [panel]);
 
   return (
-    <div className="min-h-dvh pb-[calc(72px+env(safe-area-inset-bottom))] min-[769px]:pb-0">
+    <div className="min-h-dvh pb-[calc(72px+env(safe-area-inset-bottom))] min-[769px]:pb-0 min-[1024px]:pl-(--rail)">
+      <Sidebar
+        characters={characters}
+        active={active}
+        buddy={buddy}
+        onSearch={() => setPanel("search")}
+        onFavourites={() => setPanel("favourites")}
+      />
+      <DeskBar onSearch={() => setPanel("search")} />
       <TopBar
+        characters={characters}
         profiles={profiles}
         active={active}
+        buddy={buddy}
         onSearch={() => setPanel("search")}
         onFavourites={() => setPanel("favourites")}
       />
@@ -84,20 +100,24 @@ const NAV: { href: string; label: string; icon: IconName; match: (path: string) 
 ];
 
 function TopBar({
+  characters,
   profiles,
   active,
+  buddy,
   onSearch,
   onFavourites,
 }: {
+  characters: Character[];
   profiles: ProfileState;
   active: Profile | null;
+  buddy: CharacterId | null;
   onSearch: () => void;
   onFavourites: () => void;
 }) {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 bg-canvas/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 bg-canvas/85 backdrop-blur-xl min-[1024px]:hidden">
       <div className="mx-auto flex h-[72px] max-w-[1320px] items-center justify-between gap-4 px-6 max-[640px]:h-16 max-[640px]:px-4">
         <div className="flex items-center gap-8">
           <Link href="/watch" aria-label="ShowTiva Kids home" className="flex-none">
@@ -151,8 +171,33 @@ function TopBar({
           >
             <Icon name="lock" className="size-5" />
           </Link>
-          <ProfileSwitcher profiles={profiles} active={active} />
+          <ProfileSwitcher characters={characters} profiles={profiles} active={active} buddy={buddy} />
         </div>
+      </div>
+    </header>
+  );
+}
+
+/**
+ * The bar over the content beside the sidebar: a search field that opens
+ * Discover, and the break timer when one is running. Same height as the top
+ * bar it replaces, so everything that sticks beneath it still lines up.
+ */
+function DeskBar({ onSearch }: { onSearch: () => void }) {
+  return (
+    <header className="sticky top-0 z-40 bg-canvas/85 backdrop-blur-xl max-[1023px]:hidden">
+      <div className="mx-auto flex h-[72px] max-w-[1320px] items-center justify-between gap-4 px-6">
+        <button
+          type="button"
+          onClick={onSearch}
+          className="flex h-12 w-full max-w-[560px] cursor-pointer items-center gap-3 rounded-full bg-paper pr-1.5 pl-5 text-left text-[0.98rem] font-medium text-ink-faint shadow-soft ring-1 ring-line transition-shadow hover:shadow-pop"
+        >
+          <span className="flex-1 truncate">Search shows, songs and friends</span>
+          <span className="grid size-9 flex-none place-items-center rounded-full bg-ink text-white">
+            <Icon name="search" className="size-[18px]" />
+          </span>
+        </button>
+        <TimerChip />
       </div>
     </header>
   );
@@ -185,7 +230,18 @@ function TimerChip() {
   );
 }
 
-function ProfileSwitcher({ profiles, active }: { profiles: ProfileState; active: Profile | null }) {
+/** The child watching, in the corner: switch to a sibling, or change buddy. */
+function ProfileSwitcher({
+  characters,
+  profiles,
+  active,
+  buddy,
+}: {
+  characters: Character[];
+  profiles: ProfileState;
+  active: Profile | null;
+  buddy: CharacterId | null;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -199,12 +255,13 @@ function ProfileSwitcher({ profiles, active }: { profiles: ProfileState; active:
   if (!active) {
     return (
       <Link href="/profiles" className="ml-1 inline-flex h-10 items-center rounded-full bg-ink px-4 text-[0.9rem] font-semibold text-white">
-        Choose profile
+        Who&apos;s watching?
       </Link>
     );
   }
 
   const others = profiles.list.filter((p) => p.id !== active.id);
+  const guide = characters.find((c) => c.id === (buddy ?? "bloop")) ?? characters[0];
 
   return (
     <div className="relative" onClick={(event) => event.stopPropagation()}>
@@ -221,6 +278,15 @@ function ProfileSwitcher({ profiles, active }: { profiles: ProfileState; active:
 
       {open && (
         <div className="absolute top-[calc(100%+10px)] right-0 z-50 w-[260px] animate-pop rounded-panel bg-paper p-2 shadow-lift ring-1 ring-line">
+          <Link href="/buddy" className="flex items-center gap-3 rounded-2xl p-2 transition-colors hover:bg-mist">
+            <Face character={guide} className="size-11" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[0.78rem] font-semibold text-ink-faint">{buddy ? "Your buddy" : "No buddy yet"}</span>
+              <span className="block font-display text-[1.1rem] leading-tight font-medium">{buddy ? guide.name : "Choose one"}</span>
+            </span>
+            <Icon name="chevron-right" className="size-4 text-ink-faint" />
+          </Link>
+          <div className="my-1.5 h-px bg-line" />
           {others.length > 0 && (
             <>
               <p className="px-3 pt-2 pb-1 text-[0.72rem] font-bold tracking-[0.14em] text-ink-faint uppercase">Switch to</p>

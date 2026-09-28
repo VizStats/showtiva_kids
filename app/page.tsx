@@ -1,7 +1,6 @@
 import Link from "next/link";
 
 import { getCatalog } from "@/lib/catalog";
-import { getProfiles } from "@/lib/session";
 
 import CrewLineup from "./_components/CrewLineup";
 import Icon from "./_components/Icon";
@@ -18,14 +17,11 @@ export const dynamic = "force-dynamic";
  * still fits it all without scrolling.
  */
 export default async function Landing() {
-  const [{ characters }, { state, active }] = await Promise.all([getCatalog(), getProfiles()]);
-  // A family with no kids added yet starts by adding them; one with kids
-  // picks who's watching; one mid-session carries straight on.
-  const start = active
-    ? { href: "/watch", label: `Continue as ${active.name}`, short: "Watch" }
-    : state.list.length
-      ? { href: "/profiles", label: "Start watching", short: "Start" }
-      : { href: "/profiles/new", label: "Get started", short: "Start" };
+  const { characters } = await getCatalog();
+  // Both buttons lead to the same place, and never straight into the
+  // catalog: "Who's watching?", which sends a family with no kids yet on to
+  // "Add your kids" first.
+  const next = "/profiles";
 
   return (
     <main className="flex min-h-svh flex-col overflow-x-clip">
@@ -36,10 +32,10 @@ export default async function Landing() {
         <header className="relative z-10 mx-auto flex w-full max-w-[1320px] items-center justify-end px-6 pt-4 max-[640px]:px-4">
           <nav className="flex items-center gap-2">
             <Link
-              href={start.href}
+              href={next}
               className="inline-flex h-11 items-center rounded-full bg-ink px-5 text-[0.92rem] font-semibold text-white transition-transform hover:-translate-y-px active:scale-[0.98]"
             >
-              {start.short}
+              Watch
             </Link>
           </nav>
         </header>
@@ -60,13 +56,13 @@ export default async function Landing() {
           </p>
           <div className="mt-[clamp(1rem,3vh,1.75rem)] flex animate-fade-up flex-wrap items-center justify-center gap-3 [animation-delay:0.45s]">
             <Link
-              href={start.href}
+              href={next}
               className="group inline-flex h-14 items-center gap-3 rounded-full bg-ink pr-7 pl-2.5 text-[1.02rem] font-semibold text-white transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
             >
               <span className="grid size-10 place-items-center rounded-full bg-white text-ink transition-transform duration-300 ease-spring group-hover:scale-110">
                 <Icon name="play" className="size-5 translate-x-px" />
               </span>
-              {start.label}
+              Continue
             </Link>
           </div>
         </div>

@@ -18,13 +18,13 @@ import {
   subscribeProgress,
 } from "@/lib/watch-progress";
 
-import Character from "../../_components/Character";
-import Face from "../../_components/Face";
-import Icon from "../../_components/Icon";
-import KidsPlayer, { type PlayerItem } from "../../_components/KidsPlayer";
-import Row, { ROW_CARD } from "../../_components/Row";
-import ShowArt, { Trio } from "../../_components/ShowArt";
-import ShowCard from "../../_components/ShowCard";
+import Character from "@/app/_components/Character";
+import Face from "@/app/_components/Face";
+import Icon from "@/app/_components/Icon";
+import KidsPlayer, { type PlayerItem } from "@/app/_components/KidsPlayer";
+import Row, { ROW_CARD } from "@/app/_components/Row";
+import ShowArt, { Trio } from "@/app/_components/ShowArt";
+import ShowCard from "@/app/_components/ShowCard";
 
 interface ShowClientProps {
   show: Show;

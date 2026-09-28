@@ -5,8 +5,8 @@
 // A grown-up adds each child: a photo from the device (camera or library), a
 // first name, and a birthday. The birthday suggests what the child may watch,
 // and the grown-up can pick differently. Several children can be added in
-// one sitting; "Done" takes the family to "Who's watching?", or straight in
-// when there is only one child.
+// one sitting; "Done" takes the family to "Who's watching?", or, with one
+// child, straight on to choosing their buddy.
 //
 // Only month and year of birth are asked for: enough to know an age, and no
 // more than the app needs. Photos are shrunk to a small square on the device
@@ -17,7 +17,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { cx } from "@/lib/cx";
-import { gateOpen, readGateRaw, readPhotoRaw, removePhoto, savePhoto, subscribeDevice } from "@/lib/device";
+import { readPhotoRaw, removePhoto, savePhoto, subscribeDevice } from "@/lib/device";
 import {
   AGE_BANDS,
   MAX_NAME_LENGTH,
@@ -26,7 +26,6 @@ import {
   ageFromBirth,
   bandForAge,
   newProfileId,
-  nextGuide,
   writeProfiles,
   type AgeBandId,
   type Profile,
@@ -36,7 +35,6 @@ import { useClock } from "@/lib/use-client";
 
 import Icon from "../../_components/Icon";
 import KidAvatar from "../../_components/KidAvatar";
-import ParentGate from "../../_components/ParentGate";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -74,14 +72,6 @@ interface AddKidsClientProps {
 export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
   const router = useRouter();
   const now = useClock(60_000);
-
-  // Adding to a family that already has profiles is a grown-up's job, so it
-  // sits behind the gate. The very first setup does not: whoever is setting
-  // the app up is the grown-up. Decided once, on arrival, so the gate cannot
-  // appear half way through adding a second child.
-  const [needsGate] = useState(() => state.list.length > 0);
-  const gateRaw = useSyncExternalStore(subscribeDevice, readGateRaw, () => "");
-  const unlocked = !needsGate || (now !== null && gateOpen(gateRaw, now));
 
   const [kids, setKids] = useState<Profile[]>(state.list);
   const [draftId, setDraftId] = useState(() => editing?.id ?? newProfileId());
@@ -123,7 +113,7 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
 
     const profile: Profile = editing
       ? { ...editing, name: trimmed.slice(0, MAX_NAME_LENGTH), birth, age: chosenBand }
-      : { id: draftId, name: trimmed.slice(0, MAX_NAME_LENGTH), character: nextGuide(kids), age: chosenBand, birth };
+      : { id: draftId, name: trimmed.slice(0, MAX_NAME_LENGTH), age: chosenBand, birth };
 
     if (photo === null) removePhoto(profile.id);
     else if (photo && !savePhoto(profile.id, photo)) {
@@ -156,26 +146,13 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
   const finish = () => {
     if (kids.length === 1) {
       writeProfiles({ active: kids[0].id, list: kids });
-      router.push("/watch");
+      router.push("/buddy");
     } else {
       router.push("/profiles");
     }
   };
 
   if (now === null) return <main className="min-h-dvh bg-canvas" />;
-
-  if (!unlocked) {
-    return (
-      <main className="grid min-h-dvh place-items-center bg-canvas px-4 py-10">
-        <div className="flex w-full flex-col items-center">
-          <ParentGate inline reason="Add a child" onPass={() => undefined} />
-          <Link href="/profiles" className="mt-6 text-[0.95rem] font-semibold text-ink-soft hover:text-ink">
-            Back
-          </Link>
-        </div>
-      </main>
-    );
-  }
 
   const years = Array.from({ length: 15 }, (_, i) => String(new Date(now).getFullYear() - i));
   const field = "h-14 w-full rounded-2xl border-2 bg-canvas px-4 text-[1.05rem] font-semibold text-ink outline-none transition-colors focus:border-ink";

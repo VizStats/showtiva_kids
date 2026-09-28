@@ -22,13 +22,13 @@ import { markStopDone, openChest, parseTrail, readTrailRaw, setTrailSeen, subscr
 import { currentIndex, isComplete, trailItems, WATCHED_FRACTION, type TrailItem } from "@/lib/trail";
 import { parseProgress, readRaw, resumeSeconds, saveProgress } from "@/lib/watch-progress";
 
-import Burst from "../_components/Burst";
-import Character from "../_components/Character";
-import Chest from "../_components/Chest";
-import Face from "../_components/Face";
-import Icon from "../_components/Icon";
-import KidsPlayer from "../_components/KidsPlayer";
-import ShowArt from "../_components/ShowArt";
+import Burst from "@/app/_components/Burst";
+import Character from "@/app/_components/Character";
+import Chest from "@/app/_components/Chest";
+import Face from "@/app/_components/Face";
+import Icon from "@/app/_components/Icon";
+import KidsPlayer from "@/app/_components/KidsPlayer";
+import ShowArt from "@/app/_components/ShowArt";
 import { Island, type Rect } from "./Scenery";
 
 interface TrailClientProps {

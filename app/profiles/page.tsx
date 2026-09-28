@@ -12,8 +12,8 @@ export const metadata: Metadata = { title: "Who's watching?" };
 export default async function ProfilesPage({ searchParams }: { searchParams: Promise<{ add?: string }> }) {
   const [{ state }, params] = await Promise.all([getProfiles(), searchParams]);
 
-  // Nobody to choose from yet (or a grown-up asked to add someone): the
-  // family starts on "Add your kids".
+  // No kids yet (or a grown-up asked to add someone): the family starts on
+  // "Add your kids".
   if (state.list.length === 0 || params.add === "1") redirect("/profiles/new");
 
   return <ProfilesClient state={state} />;

@@ -1,4 +1,6 @@
-// Who's watching: the profiles on this device, and which one is active.
+// Who's watching: the kids on this device, and which one is watching now.
+// Each child has their own id, and with it their own shows (by age), their
+// own favourites, their own trail and their own buddy.
 //
 // Kept in a cookie rather than localStorage because the server needs it. The
 // age a profile is set to decides which shows a page may render, and making
@@ -44,16 +46,15 @@ export type AgeBandId = (typeof AGE_BANDS)[number]["id"];
 export interface Profile {
   id: string;
   name: string;
-  /**
-   * The friend who guides this child along the trail. Given out when the
-   * profile is made (each child a different one where possible); the child's
-   * own photo, not a character, is what stands for them everywhere else.
-   */
-  character: CharacterId;
   /** What they may watch. Suggested from the birthday, set by a grown-up. */
   age: AgeBandId;
   /** Birth month, "2019-04". Month and year only: enough for an age. */
   birth?: string;
+  /**
+   * The friend this child picked on "Choose your buddy": who guides their
+   * trail and colours their sidebar.
+   */
+  buddy?: CharacterId;
 }
 
 export interface ProfileState {
@@ -81,10 +82,15 @@ function isProfile(value: unknown): value is Profile {
     typeof p.name === "string" &&
     p.name.trim().length > 0 &&
     p.name.length <= MAX_NAME_LENGTH &&
-    CHARACTER_IDS.includes(p.character as CharacterId) &&
     AGE_BANDS.some((band) => band.id === p.age) &&
     (p.birth === undefined || (typeof p.birth === "string" && BIRTH.test(p.birth)))
   );
+}
+
+/** A buddy as stored, if it names a friend. Reads the earlier "friend-look" form as that friend. */
+function readBuddy(value: unknown): CharacterId | undefined {
+  const id = typeof value === "string" ? value.split("-")[0] : "";
+  return CHARACTER_IDS.includes(id as CharacterId) ? (id as CharacterId) : undefined;
 }
 
 const BIRTH = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -102,13 +108,6 @@ export function bandForAge(age: number): AgeBandId {
   if (age <= 4) return "preschool";
   if (age <= 8) return "younger";
   return "older";
-}
-
-/** A trail guide for a new child: one nobody on this device has yet, if any are left. */
-export function nextGuide(list: Profile[]): CharacterId {
-  const taken = new Set(list.map((p) => p.character));
-  const order: CharacterId[] = ["bloop", "kai", "nova", "zip", "cog", "coco"];
-  return order.find((id) => !taken.has(id)) ?? order[list.length % order.length];
 }
 
 /**
@@ -133,7 +132,12 @@ export function parseProfiles(raw: string | undefined | null): ProfileState {
 
   if (typeof value !== "object" || value === null) return EMPTY_PROFILES;
   const state = value as Record<string, unknown>;
-  const list = Array.isArray(state.list) ? state.list.filter(isProfile).slice(0, MAX_PROFILES) : [];
+  const list = Array.isArray(state.list)
+    ? state.list
+        .filter(isProfile)
+        .slice(0, MAX_PROFILES)
+        .map((profile) => ({ ...profile, buddy: readBuddy(profile.buddy) }))
+    : [];
   const active = list.some((p) => p.id === state.active) ? (state.active as string) : null;
   return { active, list };
 }

@@ -387,7 +387,8 @@ export default function KidsPlayer({
           </CentreButton>
           <CentreButton label={playing ? "Pause" : "Play"} onClick={toggle} compact={compact}>
             {waiting && playing ? (
-              <span className="size-[42%] animate-spin rounded-full border-4 border-white/25 border-t-white" />
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src="/brand/logo-white.svg" alt="" className="w-[72%] animate-breathe" />
             ) : (
               <Icon name={playing ? "pause" : "play"} className={cx("size-[44%]", !playing && "translate-x-[6%]")} />
             )}

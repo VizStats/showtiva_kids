@@ -2,7 +2,7 @@
 
 // The break timer's other half: when the time a grown-up set runs out, the
 // whole app gives way to a friendly "time for a break" screen until a
-// grown-up unlocks it. Mounted once in the root layout so it covers every
+// grown-up lets it carry on. Mounted once in the root layout so it covers every
 // page, including the player, whose video it pauses.
 //
 // Not shown on the landing page (a parent reading about the app should not be
@@ -15,7 +15,6 @@ import { parseTimer, readTimerRaw, setTimer, subscribeDevice } from "@/lib/devic
 import { useClock } from "@/lib/use-client";
 
 import Icon from "./Icon";
-import ParentGate from "./ParentGate";
 
 const COCO = { name: "Coco", image: "/characters/coco.svg", aspect: 0.5485 };
 
@@ -105,12 +104,6 @@ export default function BreakTimer() {
 }
 
 function GrownUpChoice({ minutes, onDone }: { minutes: number; onDone: () => void }) {
-  const [passed, setPassed] = useState(false);
-
-  if (!passed) {
-    return <ParentGate reason="Unlock ShowTiva Kids" onPass={() => setPassed(true)} onCancel={onDone} />;
-  }
-
   return (
     <div className="fixed inset-0 z-[95] grid animate-fade place-items-center bg-ink/50 p-4 text-ink backdrop-blur-md">
       <div className="w-full max-w-[380px] animate-sheet rounded-panel bg-paper p-7 text-center shadow-lift">
@@ -139,6 +132,9 @@ function GrownUpChoice({ minutes, onDone }: { minutes: number; onDone: () => voi
             className="h-13 cursor-pointer rounded-2xl bg-mist px-5 text-[0.98rem] font-semibold text-ink transition-colors hover:bg-[#ebe3d6]"
           >
             Turn the timer off
+          </button>
+          <button type="button" onClick={onDone} className="mt-1 h-11 cursor-pointer text-[0.95rem] font-semibold text-ink-soft hover:text-ink">
+            Not yet
           </button>
         </div>
       </div>
