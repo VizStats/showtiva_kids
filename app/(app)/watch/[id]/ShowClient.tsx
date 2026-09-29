@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { cx, tint } from "@/lib/cx";
@@ -125,7 +124,7 @@ export default function ShowClient({ show, characters, sameHost, related, profil
   return (
     <main className="pb-16">
       {/* ---- banner ---- */}
-      <section className="mx-auto max-w-[1320px] px-6 pt-[clamp(3.5rem,6vw,5rem)] max-[640px]:px-4" style={tint(host)}>
+      <section className="mx-auto max-w-[1320px] px-6 pt-[clamp(4.75rem,7vw,6rem)] max-[640px]:px-4" style={tint(host)}>
         <div className="relative min-h-[clamp(420px,42vw,500px)] max-[800px]:min-h-0">
           <ShowArt show={show} characters={characters} bare tone="deep" className="absolute inset-0 rounded-stage max-[800px]:bottom-auto max-[800px]:h-[290px]" />
 
@@ -151,7 +150,7 @@ export default function ShowClient({ show, characters, sameHost, related, profil
           <div className="relative z-10 flex w-[54%] flex-col justify-center py-[clamp(2rem,4vw,3rem)] pr-4 pl-[clamp(1.75rem,4.5vw,4rem)] text-(--c-on) max-[800px]:w-full max-[800px]:px-0 max-[800px]:pt-[320px] max-[800px]:pb-0 max-[800px]:text-ink">
             <button
               type="button"
-              onClick={() => (window.history.length > 1 ? router.back() : router.push("/watch"))}
+              onClick={() => (window.history.length > 1 ? router.back() : router.push("/trail"))}
               className="mb-5 inline-flex h-11 w-fit cursor-pointer items-center gap-1.5 rounded-full bg-white/20 pr-4 pl-2.5 text-[0.9rem] font-bold backdrop-blur transition-colors hover:bg-white/30 max-[800px]:absolute max-[800px]:top-4 max-[800px]:left-4 max-[800px]:text-(--c-on)"
             >
               <Icon name="back" className="size-5" />
@@ -202,17 +201,16 @@ export default function ShowClient({ show, characters, sameHost, related, profil
         <ul className="mt-4 flex flex-wrap gap-3">
           {cast.map((character) => (
             <li key={character.id}>
-              <Link
-                href={`/friends/${character.id}`}
+              <span
                 style={tint(character)}
-                className="group flex items-center gap-3 rounded-full bg-(--c-soft) py-1.5 pr-5 pl-1.5 transition-transform hover:-translate-y-0.5"
+                className="group flex items-center gap-3 rounded-full bg-(--c-soft) py-1.5 pr-5 pl-1.5"
               >
-                <Face character={character} plain className="size-12 transition-transform duration-300 ease-spring group-hover:rotate-[-6deg]" />
+                <Face character={character} plain className="size-12 transition-transform duration-300 ease-spring " />
                 <span>
                   <span className="block font-display text-[1.1rem] leading-none font-medium text-(--c-deep)">{character.name}</span>
                   <span className="mt-0.5 block text-[0.8rem] font-semibold text-ink-soft">{character.role}</span>
                 </span>
-              </Link>
+              </span>
             </li>
           ))}
         </ul>
@@ -291,7 +289,7 @@ export default function ShowClient({ show, characters, sameHost, related, profil
       )}
 
       {sameHost.length > 0 && (
-        <Row title={`More with ${host.name}`} host={host} seeAll={`/friends/${host.id}`}>
+        <Row title={`More with ${host.name}`} host={host}>
           {sameHost.map((other) => (
             <ShowCard key={other.id} show={other} characters={characters} className={ROW_CARD} />
           ))}

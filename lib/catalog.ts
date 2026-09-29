@@ -195,25 +195,6 @@ function toPlayable(show: Show, key: string, item: FoundItem): Playable {
 }
 
 /**
- * Everything this viewer may play, one entry per episode and per movie, in
- * catalog order. What Discover searches, and where it finds "up next".
- */
-export function libraryFor(catalog: Catalog, maxAge: number): Playable[] {
-  return showsFor(catalog, maxAge).flatMap((show): Playable[] => {
-    if (!isEpisodic(show)) {
-      const item = findItem(show, "feature");
-      return item ? [toPlayable(show, "feature", item)] : [];
-    }
-    return show.seasons.flatMap((season) =>
-      season.episodes.map((episode) => {
-        const key = `s${season.number}e${episode.number}`;
-        return toPlayable(show, key, findItem(show, key)!);
-      }),
-    );
-  });
-}
-
-/**
  * The trail as this viewer sees it: stops above their age are left out, and
  * an island with nothing left on it is left out with them, so a younger
  * child's trail is shorter rather than full of locks they can never open.
