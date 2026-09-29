@@ -22,7 +22,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `/` | One-screen landing: the logo, the crew, and the way in |
 | `/profiles` | "Who's watching?" Each child picks their own picture, then Watch. With no kids yet it goes to `/profiles/new` |
 | `/profiles/new` | "Add your kids": a photo from the device, a name and a birth month for each child |
-| `/buddy` | "Choose your buddy": one friend big on their own colour with their name huge behind, the others small either side; arrows, swipe or arrow keys move between them. Tap the big one to make them jump; "Select" makes them this child's buddy, then a short load, a "You chose Kai!" hello and a full-screen "Meet Kai" (who they are, what they do, what they will help with) lead to "Start journey" and the trail, which they guide. They also colour the sidebar |
+| `/buddy` | "Choose your buddy": one friend big on their own colour with their name huge behind, the others small either side; arrows, swipe or arrow keys move between them. Tap the big one to make them jump; "Select" makes them this child's buddy, then, after a short load, they perform: they bound in and introduce themselves out loud, one line at a time with a move for each (a different voice per friend, with sound on/off, again and skip), and "Start journey" goes onto the trail, which they guide. They also colour the sidebar |
 | `/watch` | Home: featured banner, the trail card, friends, keep watching, one row per friend's world. Works without anyone picked; once a child is watching, it only shows shows for their age |
 | `/watch/[id]` | A show: banner, who's in it, episodes by season, the player |
 | `/trail` | The game: stops on a winding road through seven islands. The child's buddy guides them, the next stop unlocks when one is watched, and each island ends in a treasure chest holding a sticker |
@@ -37,7 +37,7 @@ Each child has their own id: their own shows by age, favourites, trail progress 
 
 ## Content
 
-`data/catalog.json` holds the characters, shows, episodes, curated rows and the trail. It is read on every request, so edits appear without a rebuild, and it is validated on read, so a bad edit names the broken path rather than breaking a page.
+`data/catalog.json` holds the characters (including each one's spoken introduction and voice), shows, episodes, curated rows and the trail. It is read on every request, so edits appear without a rebuild, and it is validated on read, so a bad edit names the broken path rather than breaking a page.
 
 Show artwork is generated from the characters (`app/_components/ShowArt.tsx`), not stored. When real key art exists, that component is the one to replace.
 
