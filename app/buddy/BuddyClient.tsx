@@ -5,7 +5,9 @@ import Link from "next/link";
 
 import type { Character as CharacterData } from "@/lib/catalog-types";
 import { cx } from "@/lib/cx";
+import { readVoiceOn } from "@/lib/device";
 import { writeProfiles, type Profile, type ProfileState } from "@/lib/profiles";
+import { canSpeak, hush, say, warmUp, warmVoices } from "@/lib/speak";
 
 import Character from "../_components/Character";
 import Icon from "../_components/Icon";
@@ -27,6 +29,7 @@ export default function BuddyClient({ characters, state, kid }: { characters: Ch
   const [said, setSaid] = useState<{ text: string; n: number } | null>(null);
   const [going, setGoing] = useState(false);
   const touchX = useRef<number | null>(null);
+  const woken = useRef(false);
 
   const character = characters[index];
   const light = character.onColor.toLowerCase() === "#ffffff";
@@ -35,14 +38,15 @@ export default function BuddyClient({ characters, state, kid }: { characters: Ch
     if (going) return;
     setIndex((i) => (i + step + count) % count);
     setSaid(null);
+    hush();
   };
 
   const poke = () => {
-    setJumps((n) => n + 1);
-    setSaid((s) => {
-      const n = (s?.n ?? -1) + 1;
-      return { text: character.quotes[n % character.quotes.length], n };
-    });
+    const n = (said?.n ?? -1) + 1;
+    const text = character.quotes[n % character.quotes.length];
+    setJumps((j) => j + 1);
+    setSaid({ text, n });
+    if (readVoiceOn() && canSpeak()) say(text, character.voice);
   };
 
   const select = () => {
@@ -51,6 +55,12 @@ export default function BuddyClient({ characters, state, kid }: { characters: Ch
     setJumps((n) => n + 1);
     writeProfiles({ ...state, list: state.list.map((p) => (p.id === kid.id ? { ...p, buddy: character.id } : p)) });
   };
+
+  // Voices load lazily in some browsers; ask early. Stop talking on the way out.
+  useEffect(() => {
+    warmVoices();
+    return hush;
+  }, []);
 
   // Arrow keys move, Enter selects.
   const keys = useRef({ move, select });
@@ -74,6 +84,12 @@ export default function BuddyClient({ characters, state, kid }: { characters: Ch
     <main
       className="relative h-dvh min-h-[560px] overflow-hidden transition-[background-color] duration-700 ease-out-soft select-none"
       style={{ backgroundColor: `color-mix(in oklab, ${character.color} 80%, ${character.deep})`, color: character.onColor }}
+      onPointerDown={() => {
+        // The first touch wakes the voices, so a tapped friend answers at once.
+        if (woken.current || !readVoiceOn() || !canSpeak()) return;
+        woken.current = true;
+        void warmUp(character.voice);
+      }}
       onTouchStart={(event) => {
         touchX.current = event.touches[0].clientX;
       }}

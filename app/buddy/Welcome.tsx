@@ -1,43 +1,198 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 
-import type { Character as CharacterData } from "@/lib/catalog-types";
+import type { Character as CharacterData, Motif, Move } from "@/lib/catalog-types";
+import { cx } from "@/lib/cx";
+import { readVoiceOn, setVoiceOn } from "@/lib/device";
 import type { Profile } from "@/lib/profiles";
+import { canSpeak, hush, say, warmUp } from "@/lib/speak";
 
 import Burst from "../_components/Burst";
 import Character from "../_components/Character";
-import Icon from "../_components/Icon";
-import KidAvatar from "../_components/KidAvatar";
+import Icon, { type IconName } from "../_components/Icon";
+import { MotifGlyph } from "../_components/ShowArt";
 
-type Phase = "loading" | "hello" | "meet";
+const MOVE: Record<Move, string> = {
+  wave: "animate-wave",
+  jump: "animate-hop-twice",
+  spin: "animate-twirl",
+  dance: "animate-dance",
+  think: "animate-think",
+  lean: "animate-lean",
+  nod: "animate-nod",
+  wobble: "animate-wobble",
+  dash: "animate-dash",
+  sway: "animate-rock",
+  breathe: "animate-inhale",
+  cheer: "animate-cheer",
+};
+
+/** The loader holds at least this long, and at most the longer one while the voice wakes. */
+const LOADING_MIN_MS = 1200;
+const LOADING_MAX_MS = 3600;
+/** How long to wait for the voice to start before carrying on without it. */
+const VOICE_WAIT_MS = 3500;
+/** The pause between one line and the next. */
+const BETWEEN_MS = 650;
 
 /**
- * What happens after "Select": a beat of loading while the buddy gets ready,
- * a big hello ("You chose Kai!") with confetti, then a full-screen "meet your
- * buddy": the child and their friend side by side, who the friend is, what
- * they do and what they will help with, and the way onto the trail. The
- * hello moves on by itself; a tap skips it.
+ * What happens after "Select": not a page to read, a performance. A beat of
+ * loading while the buddy gets ready, then they bound in and introduce
+ * themselves out loud, one line at a time, each line with its own move: who
+ * they are, what they love, what they will help with. The words fill a
+ * speech bubble as they say them, and on the last line "Start journey" pops
+ * up. Tap them and they jump.
+ *
+ * The voice is the browser's own speech, a different one per friend (see
+ * lib/speak.ts). It can be muted, and where a device has no voice the
+ * bubble carries the lines alone at the same pace.
  */
 export default function Welcome({ character, kid, onBack }: { character: CharacterData; kid: Profile; onBack: () => void }) {
   const router = useRouter();
-  const [phase, setPhase] = useState<Phase>("loading");
-  const [leaving, setLeaving] = useState(false);
-  const light = character.onColor.toLowerCase() === "#ffffff";
+  const script = character.intro.map((beat) => ({ ...beat, say: beat.say.replaceAll("{kid}", kid.name) }));
+  const last = script.length - 1;
 
+  const [ready, setReady] = useState(false);
+  const [beat, setBeat] = useState(0);
+  const [shown, setShown] = useState(0);
+  const [run, setRun] = useState(0);
+  const [pokes, setPokes] = useState(0);
+  const [voiceOn, setVoice] = useState(readVoiceOn);
+  const [speaking, setSpeaking] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+
+  const line = script[beat];
+  const text = line.say;
+  // They bounce while the words fill in and for as long as the voice goes on.
+  const talking = ready && (shown < text.length || (speaking && voiceOn));
+  // Whole words at a time, so a half-said word never shows.
+  const wordEnd = text.indexOf(" ", shown);
+  const said = shown === 0 ? "" : text.slice(0, wordEnd === -1 ? text.length : wordEnd);
+  const light = character.onColor.toLowerCase() === "#ffffff";
+  const voiceStyle = character.voice;
+  const { rate } = voiceStyle;
+
+  // A beat of loading while the buddy gets ready. Online voices take a few
+  // seconds to wake the first time, so the loader also waits (up to a point)
+  // for a silent word in their voice, and the first real line starts on time.
   useEffect(() => {
     router.prefetch("/trail");
+    const began = Date.now();
+    let settled = false;
+    let hold: number | undefined;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      hold = window.setTimeout(() => setReady(true), Math.max(0, LOADING_MIN_MS - (Date.now() - began)));
+    };
+    const cap = window.setTimeout(finish, LOADING_MAX_MS);
+    if (voiceOn && canSpeak()) void warmUp(voiceStyle).then(finish);
+    else finish();
+    return () => {
+      settled = true;
+      window.clearTimeout(cap);
+      window.clearTimeout(hold);
+    };
+    // The loader runs once, when the page opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
+  // One line: say it, fill the bubble from the moment the voice starts, then
+  // on to the next once both are done.
   useEffect(() => {
-    if (phase === "meet") return;
-    const timer = window.setTimeout(() => setPhase(phase === "loading" ? "hello" : "meet"), phase === "loading" ? 1500 : 2800);
-    return () => window.clearTimeout(timer);
-  }, [phase]);
+    if (!ready) return;
+    const charMs = 70 / rate;
+    let revealed = false;
+    let spoken = !voiceOn || !canSpeak();
+    let next: number | undefined;
+    let reveal: number | undefined;
+    let revealEnd: number | undefined;
+
+    const advance = () => {
+      if (!revealed || !spoken || next !== undefined || beat >= last) return;
+      next = window.setTimeout(() => {
+        setShown(0);
+        setBeat(beat + 1);
+      }, BETWEEN_MS);
+    };
+
+    const startReveal = () => {
+      if (reveal !== undefined) return;
+      reveal = window.setInterval(() => setShown((n) => Math.min(text.length, n + 1)), charMs);
+      revealEnd = window.setTimeout(() => {
+        revealed = true;
+        window.clearInterval(reveal);
+        setShown(text.length);
+        advance();
+      }, text.length * charMs + 150);
+    };
+
+    let stop: (() => void) | null = null;
+    let silent: number | undefined;
+    let safety: number | undefined;
+    if (spoken) {
+      startReveal();
+    } else {
+      stop = say(text, voiceStyle, {
+        onstart: () => {
+          setSpeaking(true);
+          startReveal();
+        },
+        onend: () => {
+          setSpeaking(false);
+          spoken = true;
+          startReveal();
+          advance();
+        },
+      });
+      // A device with no voice to speak with never starts: carry on at the
+      // bubble's pace rather than wait.
+      silent = window.setTimeout(() => {
+        if (reveal !== undefined) return;
+        spoken = true;
+        startReveal();
+      }, VOICE_WAIT_MS);
+      // In case the speech starts but never reports back.
+      safety = window.setTimeout(
+        () => {
+          spoken = true;
+          advance();
+        },
+        (text.length * 110) / rate + VOICE_WAIT_MS + 2000,
+      );
+    }
+
+    return () => {
+      window.clearInterval(reveal);
+      window.clearTimeout(revealEnd);
+      window.clearTimeout(safety);
+      window.clearTimeout(silent);
+      if (next !== undefined) window.clearTimeout(next);
+      stop?.();
+    };
+  }, [ready, beat, run, voiceOn, text, voiceStyle, rate, last]);
+
+  const toggleVoice = () => {
+    setVoiceOn(!voiceOn);
+    setVoice(!voiceOn);
+  };
+
+  const replay = () => {
+    setRun((n) => n + 1);
+    setBeat(0);
+    setShown(0);
+  };
+
+  const skip = () => {
+    setBeat(last);
+    setShown(0);
+  };
 
   const start = () => {
     setLeaving(true);
+    hush();
     router.push("/trail");
   };
 
@@ -45,21 +200,12 @@ export default function Welcome({ character, kid, onBack }: { character: Charact
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`${character.name} is your buddy`}
-      className="fixed inset-0 z-50 animate-fade overflow-x-hidden overflow-y-auto"
+      aria-label={`${character.name} says hello`}
+      className="fixed inset-0 z-50 animate-fade overflow-hidden select-none"
       style={{ backgroundColor: `color-mix(in oklab, ${character.color} 80%, ${character.deep})`, color: character.onColor }}
     >
-      {/* The name, huge and faint, behind every phase. */}
-      <p
-        aria-hidden
-        className="pointer-events-none fixed inset-x-0 top-[12%] text-center font-display text-[clamp(7rem,30vw,26rem)] leading-[0.8] font-bold tracking-[-0.03em] whitespace-nowrap"
-        style={{ color: `color-mix(in srgb, ${character.onColor} ${phase === "meet" ? 14 : 24}%, transparent)` }}
-      >
-        {character.name.toUpperCase()}
-      </p>
-
-      {phase === "loading" && (
-        <div role="status" className="relative grid h-dvh place-items-center">
+      {!ready ? (
+        <div role="status" aria-label="Loading" className="grid h-dvh place-items-center">
           <div className="flex flex-col items-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={light ? "/brand/logo-white.svg" : "/brand/logo.svg"} alt="" className="w-[clamp(150px,18vw,210px)] animate-breathe" />
@@ -68,90 +214,74 @@ export default function Welcome({ character, kid, onBack }: { character: Charact
                 <span key={i} className="size-2.5 animate-dot rounded-full bg-current" style={{ animationDelay: `${i * 0.14}s` }} />
               ))}
             </span>
-            <p className="mt-5 text-[1.02rem] font-semibold opacity-85">Getting {character.name} ready…</p>
           </div>
         </div>
-      )}
+      ) : (
+        <>
+          {/* A soft light on the stage, breathing. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute top-[14%] left-1/2 aspect-square w-[min(92vw,820px)] -translate-x-1/2 animate-glow rounded-full"
+            style={{ background: "radial-gradient(circle, rgb(255 255 255 / 0.32), transparent 62%)" }}
+          />
 
-      {phase === "hello" && (
-        <button
-          type="button"
-          onClick={() => setPhase("meet")}
-          aria-label="Continue"
-          className="relative grid h-dvh w-full cursor-pointer place-items-center px-6 text-center"
-        >
-          <span className="flex flex-col items-center">
-            <span className="relative">
-              <Burst className="top-[38%] left-1/2" count={26} spread={280} />
-              <span className="block animate-rise">
-                <Character character={character} decorative priority className="h-[min(46vh,420px)] animate-bob" />
-              </span>
-              <span className="absolute top-[2%] left-[74%] w-max max-w-[14rem] animate-pop rounded-2xl rounded-bl-md bg-white px-4 py-2.5 text-left text-[1rem] leading-snug font-semibold text-ink shadow-lift [animation-delay:0.55s] max-[640px]:top-[-3.25rem] max-[640px]:left-1/2 max-[640px]:-translate-x-1/2 max-[640px]:rounded-bl-2xl">
-                Hi {kid.name}! You chose me!
-              </span>
-            </span>
-            <span className="mt-6 block animate-fade-up font-display text-[clamp(2.6rem,6.4vw,5rem)] leading-none font-bold [animation-delay:0.3s]">
-              You chose {character.name}!
-            </span>
-            <span className="mt-3 block animate-fade-up text-[1.1rem] font-medium opacity-85 [animation-delay:0.45s]">{character.quotes[0]}</span>
-          </span>
-        </button>
-      )}
-
-      {phase === "meet" && (
-        <div className="relative min-h-dvh">
-          <header className="flex items-center justify-between px-[clamp(1.25rem,4vw,3rem)] pt-5">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={light ? "/brand/logo-white.svg" : "/brand/logo.svg"} alt="ShowTiva Kids" className="h-auto w-[clamp(96px,9vw,124px)]" />
-            <button
-              type="button"
-              onClick={onBack}
-              className="inline-flex h-11 cursor-pointer items-center gap-1.5 rounded-full bg-white/18 pr-4 pl-3 text-[0.95rem] font-semibold ring-1 ring-white/30 backdrop-blur-md transition-colors hover:bg-white/28"
-            >
-              <Icon name="chevron-left" className="size-4" />
-              Pick someone else
-            </button>
+          <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-[clamp(1rem,4vw,3rem)] pt-5">
+            <Round label="Pick someone else" icon="chevron-left" onClick={onBack} />
+            <div className="flex gap-2.5">
+              <Round label={voiceOn ? "Sound off" : "Sound on"} icon={voiceOn ? "volume" : "mute"} onClick={toggleVoice} />
+              <Round label="Again" icon="replay" onClick={replay} />
+              {beat < last && <Round label="Skip" icon="next" onClick={skip} />}
+            </div>
           </header>
 
-          <div className="mx-auto grid min-h-[calc(100dvh-6rem)] max-w-[1200px] grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] items-center gap-[clamp(1.5rem,4vw,4rem)] px-[clamp(1.25rem,5vw,4rem)] pt-[clamp(1rem,2vh,2rem)] pb-12 max-[860px]:min-h-0 max-[860px]:grid-cols-1">
-            {/* The two of them, together. */}
-            <div className="relative mx-auto flex w-full max-w-[460px] animate-fade-up flex-col items-center">
-              <span className="relative">
-                <Character character={character} decorative priority className="h-[min(56vh,520px)] animate-bob max-[860px]:h-[min(38vh,340px)]" />
-                <span className="absolute -bottom-1 -left-[14%] animate-pop [animation-delay:0.25s]">
-                  <KidAvatar profile={kid} className="size-[clamp(84px,9vw,120px)] shadow-lift ring-[6px] ring-white" />
-                </span>
-              </span>
-            </div>
+          {/* The stage. */}
+          <div className="absolute inset-x-0 top-[16%] bottom-[clamp(7.5rem,17vh,10rem)] flex items-end justify-center max-[640px]:top-[30%]">
+            <div className="relative h-[min(100%,560px)]">
+              {line.fx === "confetti" && <Burst key={`confetti-${run}-${beat}`} className="top-[34%] left-1/2 z-10" count={30} spread={320} />}
+              {line.fx === "motif" && <Float key={`motif-${run}-${beat}`} motif={character.motif} />}
 
-            {/* Who they are, what they do, what they will help with: a few words each. */}
-            <div className="animate-fade-up [animation-delay:0.15s]">
-              <p className="text-[0.85rem] font-semibold tracking-[0.2em] uppercase opacity-80">{kid.name}&apos;s buddy</p>
-              <h1 className="mt-2 font-display text-[clamp(3rem,7vw,5.5rem)] leading-[0.9] font-bold">Meet {character.name}</h1>
-              <p className="mt-4 max-w-[26rem] text-[clamp(1.1rem,1.6vw,1.3rem)] leading-snug font-medium opacity-90">{character.worldLine}.</p>
-
-              <dl className="mt-8 grid max-w-[30rem] grid-cols-2 gap-3">
-                <Fact label="Who">{character.role}</Fact>
-                <Fact label="World">{character.world}</Fact>
-              </dl>
-
-              <h2 className="mt-8 text-[0.8rem] font-bold tracking-[0.18em] uppercase opacity-75">{character.name} will help you</h2>
-              <ul className="mt-3 grid gap-3">
-                {character.helps.map((help) => (
-                  <li key={help} className="flex items-center gap-3 text-[1.08rem] leading-snug font-semibold">
-                    <span className="grid size-7 flex-none place-items-center rounded-full bg-white" style={{ color: character.deep }}>
-                      <Icon name="check" className="size-4" />
+              <button
+                type="button"
+                aria-label={`${character.name}, tap to say hi`}
+                onClick={() => setPokes((n) => n + 1)}
+                className="relative block h-full cursor-pointer"
+              >
+                <span aria-hidden className="absolute -bottom-2 left-1/2 h-[5%] w-[70%] -translate-x-1/2 rounded-full bg-black/20 blur-md" />
+                <span key={`enter-${run}`} className="block h-full origin-bottom animate-enter">
+                  <span key={`move-${run}-${beat}`} className={cx("block h-full origin-bottom", MOVE[line.move])}>
+                    <span key={`poke-${pokes}`} className={cx("block h-full origin-bottom", pokes > 0 && "animate-jump")}>
+                      <span className={cx("block h-full origin-bottom", talking && "animate-talk")}>
+                        <Character character={character} decorative priority className="h-full animate-bob" />
+                      </span>
                     </span>
-                    {help}
-                  </li>
-                ))}
-              </ul>
+                  </span>
+                </span>
+              </button>
 
+              {/* What they are saying, growing word by word as they say it. */}
+              {said && (
+                <p
+                  key={`say-${run}-${beat}`}
+                  aria-hidden
+                  className="absolute top-[3%] left-[80%] z-20 w-max max-w-[min(20rem,40vw)] animate-pop rounded-3xl bg-white px-5 py-3.5 font-display text-[clamp(1.15rem,1.7vw,1.45rem)] leading-snug font-medium text-ink shadow-lift before:absolute before:top-6 before:-left-2 before:size-4 before:rotate-45 before:rounded-sm before:bg-white max-[640px]:top-auto max-[640px]:bottom-[calc(100%+1rem)] max-[640px]:left-1/2 max-[640px]:max-w-[86vw] max-[640px]:-translate-x-1/2 max-[640px]:text-center max-[640px]:before:top-auto max-[640px]:before:-bottom-2 max-[640px]:before:left-1/2 max-[640px]:before:-ml-2"
+                >
+                  {said}
+                </p>
+              )}
+            </div>
+          </div>
+          <p className="sr-only" aria-live="polite">
+            {text}
+          </p>
+
+          {/* Where we are in the hello; at the end, the way onto the trail. */}
+          <div className="absolute inset-x-0 bottom-0 z-20 flex h-[clamp(7.5rem,17vh,10rem)] items-center justify-center pb-[env(safe-area-inset-bottom)]">
+            {beat === last ? (
               <button
                 type="button"
                 onClick={start}
                 disabled={leaving}
-                className="mt-10 inline-flex h-16 cursor-pointer items-center justify-center gap-3 rounded-full bg-white pr-9 pl-3 font-display text-[1.4rem] font-bold shadow-[0_18px_40px_-14px_rgba(0,0,0,0.45)] transition-transform hover:-translate-y-0.5 active:scale-[0.97] max-[860px]:sticky max-[860px]:bottom-[max(1rem,env(safe-area-inset-bottom))] max-[860px]:w-full"
+                className="inline-flex h-16 animate-pop cursor-pointer items-center justify-center gap-3 rounded-full bg-white pr-9 pl-3 font-display text-[1.4rem] font-bold shadow-[0_18px_40px_-14px_rgba(0,0,0,0.45)] transition-transform [animation-delay:0.4s] hover:-translate-y-0.5 active:scale-[0.97]"
                 style={{ color: character.deep }}
               >
                 <span className="grid size-11 place-items-center rounded-full text-white" style={{ backgroundColor: character.deep }}>
@@ -159,19 +289,58 @@ export default function Welcome({ character, kid, onBack }: { character: Charact
                 </span>
                 Start journey
               </button>
-            </div>
+            ) : (
+              <span aria-hidden className="flex gap-1.5">
+                {script.map((_, i) => (
+                  <span key={i} className={cx("h-2 rounded-full bg-current transition-all duration-300", i === beat ? "w-7" : "w-2 opacity-40")} />
+                ))}
+              </span>
+            )}
           </div>
-        </div>
+        </>
       )}
     </div>
   );
 }
 
-function Fact({ label, children }: { label: string; children: React.ReactNode }) {
+/** A round glass button with just an icon; the label is for screen readers and tooltips. */
+function Round({ label, icon, onClick }: { label: string; icon: IconName; onClick: () => void }) {
   return (
-    <div className="rounded-2xl bg-white/15 px-4 py-3 ring-1 ring-white/20">
-      <dt className="text-[0.72rem] font-bold tracking-[0.18em] uppercase opacity-70">{label}</dt>
-      <dd className="mt-1 font-display text-[1.25rem] leading-tight font-medium">{children}</dd>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      className="grid size-12 cursor-pointer place-items-center rounded-full bg-white/18 ring-1 ring-white/30 backdrop-blur-md transition-[background-color,scale] hover:bg-white/28 active:scale-90"
+    >
+      <Icon name={icon} className="size-5" />
+    </button>
+  );
+}
+
+/** Their motif, a dozen of it, floating up and away from them. */
+function Float({ motif }: { motif: Motif }) {
+  return (
+    <span aria-hidden className="pointer-events-none absolute top-[42%] left-1/2 z-10 size-0">
+      {Array.from({ length: 12 }, (_, i) => {
+        const angle = (i / 12) * Math.PI * 2;
+        return (
+          <span
+            key={i}
+            className="absolute -translate-1/2 animate-float-away"
+            style={
+              {
+                "--dx": `${Math.cos(angle) * (170 + (i % 3) * 60)}px`,
+                "--dy": `${Math.sin(angle) * 120 - 150 - (i % 4) * 30}px`,
+                "--rot": `${(i % 2 ? 1 : -1) * (40 + i * 12)}deg`,
+                animationDelay: `${(i % 6) * 0.08}s`,
+              } as CSSProperties
+            }
+          >
+            <MotifGlyph motif={motif} className="size-[clamp(26px,3vw,40px)] opacity-85" />
+          </span>
+        );
+      })}
+    </span>
   );
 }

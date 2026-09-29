@@ -167,6 +167,19 @@ export function removePhoto(profileId: string): void {
   write("local", photoKey(profileId), null);
 }
 
+/* --------------------------------------------------------------- voice -- */
+
+const VOICE_KEY = "stk-voice";
+
+/** Whether the buddies speak out loud on this device. On unless turned off. */
+export function readVoiceOn(): boolean {
+  return read("local", VOICE_KEY) !== "off";
+}
+
+export function setVoiceOn(on: boolean): void {
+  write("local", VOICE_KEY, on ? null : "off");
+}
+
 /* --------------------------------------------------------------- reset -- */
 
 /** Forgets everything this app stored on the device except the profiles

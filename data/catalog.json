@@ -14,10 +14,45 @@
         "Puddles",
         "Making new friends"
       ],
-      "helps": [
-        "Find the silliest cartoons on the island",
-        "Make new friends and share the fun",
-        "Smile, even on rainy days"
+      "voice": {
+        "pitch": 1.3,
+        "rate": 1.05,
+        "prefer": [
+          "Ana",
+          "Junior",
+          "Google US English",
+          "Samantha",
+          "Zira"
+        ]
+      },
+      "intro": [
+        {
+          "say": "Hiii {kid}! You picked me!",
+          "move": "wave",
+          "fx": "confetti"
+        },
+        {
+          "say": "I'm Bloop, a drop of pure happy!",
+          "move": "jump",
+          "fx": "motif"
+        },
+        {
+          "say": "I love ice cream, puddles and making new friends.",
+          "move": "dance"
+        },
+        {
+          "say": "I'll help you find the silliest cartoons on the island.",
+          "move": "lean"
+        },
+        {
+          "say": "And we'll smile, even on rainy days!",
+          "move": "nod"
+        },
+        {
+          "say": "Ready? Let's start our journey!",
+          "move": "cheer",
+          "fx": "confetti"
+        }
       ],
       "quotes": [
         "Hiii! Want some ice cream?",
@@ -50,10 +85,47 @@
         "Treasure maps",
         "Sea turtles"
       ],
-      "helps": [
-        "Be brave and try new things",
-        "Explore wild places and secret caves",
-        "Keep going when your knees wobble"
+      "voice": {
+        "pitch": 1.4,
+        "rate": 1.08,
+        "prefer": [
+          "Eric",
+          "Guy",
+          "Liam",
+          "Google UK English Male",
+          "Alex",
+          "Daniel",
+          "David"
+        ]
+      },
+      "intro": [
+        {
+          "say": "Yo, {kid}! You chose me!",
+          "move": "wave",
+          "fx": "confetti"
+        },
+        {
+          "say": "I'm Kai. Big waves, tall trees, secret caves: I want to find them all!",
+          "move": "dash",
+          "fx": "motif"
+        },
+        {
+          "say": "Being brave just means trying, even when your knees wobble.",
+          "move": "wobble"
+        },
+        {
+          "say": "I'll help you be brave and try new things.",
+          "move": "lean"
+        },
+        {
+          "say": "We'll explore wild places together!",
+          "move": "jump"
+        },
+        {
+          "say": "Surf's up! Let's start our journey!",
+          "move": "cheer",
+          "fx": "confetti"
+        }
       ],
       "quotes": [
         "Surf's up, let's go!",
@@ -86,10 +158,46 @@
         "Big questions",
         "Pencils (sharp ones)"
       ],
-      "helps": [
-        "Ask big questions and find the answers",
-        "Build, test and invent things",
-        "Learn that mistakes are how inventions start"
+      "voice": {
+        "pitch": 1.55,
+        "rate": 0.97,
+        "prefer": [
+          "Thomas",
+          "Ryan",
+          "Mitchell",
+          "Google UK English Male",
+          "Daniel",
+          "Mark"
+        ]
+      },
+      "intro": [
+        {
+          "say": "Hello, {kid}! You picked me. Excellent choice!",
+          "move": "wave",
+          "fx": "confetti"
+        },
+        {
+          "say": "I'm Cog. My head is full of gears and big questions.",
+          "move": "think",
+          "fx": "motif"
+        },
+        {
+          "say": "How do rainbows work? Why do cats purr? Let's find out!",
+          "move": "nod"
+        },
+        {
+          "say": "I'll help you ask big questions and find the answers.",
+          "move": "lean"
+        },
+        {
+          "say": "And remember, mistakes are how inventions start!",
+          "move": "jump"
+        },
+        {
+          "say": "My gears are turning! Let's start our journey!",
+          "move": "cheer",
+          "fx": "confetti"
+        }
       ],
       "quotes": [
         "Ooh, good question!",
@@ -122,10 +230,47 @@
         "Sparkly boots",
         "Dance-offs"
       ],
-      "helps": [
-        "Sing along and dance it out",
-        "Shine on your very own stage",
-        "Feel the beat in everything"
+      "voice": {
+        "pitch": 1.3,
+        "rate": 1.0,
+        "prefer": [
+          "Maisie",
+          "Libby",
+          "Sonia",
+          "Google UK English Female",
+          "Karen",
+          "Moira",
+          "Zira"
+        ]
+      },
+      "intro": [
+        {
+          "say": "Darling {kid}! You chose me!",
+          "move": "spin",
+          "fx": "confetti"
+        },
+        {
+          "say": "I'm Nova. I sing, I dance, I shine!",
+          "move": "dance",
+          "fx": "motif"
+        },
+        {
+          "say": "Every kitchen is a stage, and every hairbrush is a microphone.",
+          "move": "sway"
+        },
+        {
+          "say": "I'll help you sing along and dance it out.",
+          "move": "lean"
+        },
+        {
+          "say": "You'll shine on your very own stage!",
+          "move": "spin"
+        },
+        {
+          "say": "Now, let's start our journey!",
+          "move": "cheer",
+          "fx": "confetti"
+        }
       ],
       "quotes": [
         "And a five, six, seven, eight!",
@@ -158,10 +303,46 @@
         "Racing",
         "Jumping on things"
       ],
-      "helps": [
-        "Get up, jump about and play",
-        "Race, spin and skate with the crew",
-        "Keep your body moving and happy"
+      "voice": {
+        "pitch": 1.8,
+        "rate": 1.3,
+        "prefer": [
+          "Liam",
+          "Connor",
+          "Christopher",
+          "Junior",
+          "Google US English",
+          "Fred"
+        ]
+      },
+      "intro": [
+        {
+          "say": "Zip! Hey {kid}, you picked me!",
+          "move": "dash",
+          "fx": "confetti"
+        },
+        {
+          "say": "I skate, I jump, I spin, and I never stop smiling!",
+          "move": "spin",
+          "fx": "motif"
+        },
+        {
+          "say": "Get up and move with me!",
+          "move": "jump"
+        },
+        {
+          "say": "I'll help you race, spin and play with the crew.",
+          "move": "dance"
+        },
+        {
+          "say": "Keep your body moving and happy!",
+          "move": "wobble"
+        },
+        {
+          "say": "Ready, set... let's start our journey!",
+          "move": "cheer",
+          "fx": "confetti"
+        }
       ],
       "quotes": [
         "Ready, set, ZIP!",
@@ -194,10 +375,47 @@
         "Slow stories",
         "Starry skies"
       ],
-      "helps": [
-        "Calm down with slow, cosy stories",
-        "Take big, slow breaths",
-        "Get ready for a sleepy, happy bedtime"
+      "voice": {
+        "pitch": 1.15,
+        "rate": 0.82,
+        "prefer": [
+          "Andrew",
+          "Brian",
+          "Steffan",
+          "Roger",
+          "Google US English",
+          "Alex",
+          "David"
+        ]
+      },
+      "intro": [
+        {
+          "say": "Hey... {kid}. You picked me. Nice.",
+          "move": "sway",
+          "fx": "confetti"
+        },
+        {
+          "say": "I'm Coco. I'm never in a hurry.",
+          "move": "sway",
+          "fx": "motif"
+        },
+        {
+          "say": "Let's take a slow, deep breath together. In... and out.",
+          "move": "breathe"
+        },
+        {
+          "say": "I'll help you calm down with cosy stories.",
+          "move": "nod"
+        },
+        {
+          "say": "And get ready for a happy bedtime.",
+          "move": "lean"
+        },
+        {
+          "say": "Okay... let's start our journey.",
+          "move": "cheer",
+          "fx": "confetti"
+        }
       ],
       "quotes": [
         "Breathe in... and out.",

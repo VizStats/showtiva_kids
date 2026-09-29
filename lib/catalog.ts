@@ -9,8 +9,10 @@ import { cache } from "react";
 
 import {
   CHARACTER_IDS,
+  EFFECTS,
   FORMATS,
   MOTIFS,
+  MOVES,
   isEpisodic,
   type Catalog,
   type Character,
@@ -54,10 +56,24 @@ function assertCatalog(value: unknown): Catalog {
     if (!face || ["x", "y", "size"].some((k) => typeof face[k] !== "number")) {
       fail(`characters[${i}].face needs numeric x, y and size`);
     }
-    for (const field of ["likes", "helps", "quotes"]) {
+    for (const field of ["likes", "quotes"]) {
       if (!Array.isArray(ch[field]) || !(ch[field] as unknown[]).every(isString)) {
         fail(`characters[${i}].${field} must be an array of strings`);
       }
+    }
+    const intro = ch.intro as Record<string, unknown>[] | undefined;
+    if (!Array.isArray(intro) || intro.length === 0) fail(`characters[${i}].intro must be a non-empty array`);
+    for (const [j, beat] of intro.entries()) {
+      if (!isString(beat?.say)) fail(`characters[${i}].intro[${j}].say must be a non-empty string`);
+      if (!MOVES.includes(beat.move as never)) fail(`characters[${i}].intro[${j}].move must be one of ${MOVES.join(", ")}`);
+      if (beat.fx !== undefined && !EFFECTS.includes(beat.fx as never)) fail(`characters[${i}].intro[${j}].fx must be one of ${EFFECTS.join(", ")}`);
+    }
+    const voice = ch.voice as Record<string, unknown> | undefined;
+    if (!voice || typeof voice.pitch !== "number" || typeof voice.rate !== "number") {
+      fail(`characters[${i}].voice needs numeric pitch and rate`);
+    }
+    if (!Array.isArray(voice.prefer) || voice.prefer.length === 0 || !voice.prefer.every(isString)) {
+      fail(`characters[${i}].voice.prefer must be a non-empty array of voice names`);
     }
   }
 
