@@ -11,10 +11,10 @@ export default function NotFound() {
           Cog looked everywhere. This show might be for a different age, or it might have wandered off.
         </p>
         <Link
-          href="/watch"
+          href="/trail"
           className="mt-8 inline-flex h-14 items-center rounded-full bg-ink px-7 text-[1rem] font-semibold text-white transition-transform hover:-translate-y-0.5"
         >
-          Back to home
+          Back to the trail
         </Link>
       </div>
     </main>

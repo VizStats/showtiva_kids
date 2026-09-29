@@ -13,9 +13,6 @@ export default function SiteFooter() {
         <span>© {year} ShowTiva</span>
       </div>
       <nav className="flex flex-wrap items-center gap-x-5 gap-y-2">
-        <Link href="/friends" className="hover:text-ink">
-          The crew
-        </Link>
         <Link href="/parents" className="hover:text-ink">
           Grown-ups
         </Link>

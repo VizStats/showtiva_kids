@@ -63,7 +63,7 @@ export default function Row({ title, host, seeAll, children }: RowProps) {
           on the gutter. */}
       <div
         ref={scroller}
-        className="no-scrollbar mt-4 flex snap-x snap-mandatory scroll-px-[max(1.5rem,calc((100vw-var(--rail)-1320px)/2+1.5rem))] gap-5 overflow-x-auto px-[max(1.5rem,calc((100vw-var(--rail)-1320px)/2+1.5rem))] pt-2 pb-4 max-[640px]:scroll-px-4 max-[640px]:gap-4 max-[640px]:px-4"
+        className="no-scrollbar mt-4 flex snap-x snap-mandatory scroll-px-[max(1.5rem,calc((100vw-1320px)/2+1.5rem))] gap-5 overflow-x-auto px-[max(1.5rem,calc((100vw-1320px)/2+1.5rem))] pt-2 pb-4 max-[640px]:scroll-px-4 max-[640px]:gap-4 max-[640px]:px-4"
       >
         {children}
       </div>

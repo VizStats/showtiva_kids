@@ -8,6 +8,12 @@
 // every visit, sharp at any size, and costs no image downloads. Decorations
 // are placed on a jittered grid and kept clear of the road, the stops and the
 // island signs, so the scenery frames the path without crowding it.
+//
+// And it moves: islands melt into each other rather than meeting at an edge,
+// water ripples and foams and laps at the shore, trees sway, boats rock,
+// ponds ring, and clouds drift over the lot.
+
+import type { CSSProperties } from "react";
 
 import type { CharacterId, ResolvedChapter } from "@/lib/catalog-types";
 
@@ -54,7 +60,8 @@ type Decor =
   | "ramp"
   | "cone"
   | "bubble"
-  | "ring";
+  | "ring"
+  | "boat";
 
 type Where = "land" | "water" | "any";
 
@@ -129,6 +136,7 @@ const PALETTES: Record<Theme, Palette> = {
       { type: "starfish", where: "land", weight: 2 },
       { type: "umbrella", where: "land", weight: 1 },
       { type: "wave", where: "water", weight: 3 },
+      { type: "boat", where: "water", weight: 1 },
     ],
   },
   night: {
@@ -152,6 +160,7 @@ const PALETTES: Record<Theme, Palette> = {
       { type: "bubble", where: "water", weight: 4 },
       { type: "ring", where: "water", weight: 2 },
       { type: "wave", where: "water", weight: 1 },
+      { type: "boat", where: "water", weight: 1 },
       { type: "palm", where: "land", weight: 1 },
       { type: "umbrella", where: "land", weight: 1 },
     ],
@@ -160,24 +169,47 @@ const PALETTES: Record<Theme, Palette> = {
 
 /* ------------------------------------------------------ the pieces -- */
 
-function Piece({ type, x, y, s, bloom, night, delay }: { type: Decor; x: number; y: number; s: number; bloom: string; night: boolean; delay: number }) {
+function Piece({
+  type,
+  x,
+  y,
+  s,
+  bloom,
+  night,
+  delay,
+  moving,
+}: {
+  type: Decor;
+  x: number;
+  y: number;
+  s: number;
+  bloom: string;
+  night: boolean;
+  delay: number;
+  /** Sways in the breeze (trees, palms, bushes). */
+  moving: boolean;
+}) {
   const t = `translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${s.toFixed(2)})`;
   switch (type) {
     case "tree":
       return (
         <g transform={t}>
           <ellipse cx="0" cy="16" rx="16" ry="5" fill="rgb(0 0 0 / 0.08)" />
-          <rect x="-3" y="2" width="6" height="14" rx="3" fill="#a8784f" />
-          <circle cx="0" cy="-6" r="18" fill="#62b451" />
-          <circle cx="-5" cy="-11" r="10" fill="#79c665" />
+          <g className={moving ? "animate-rustle" : undefined} style={moving ? { transformBox: "fill-box", transformOrigin: "50% 100%", animationDelay: `-${delay}s` } : undefined}>
+            <rect x="-3" y="2" width="6" height="14" rx="3" fill="#a8784f" />
+            <circle cx="0" cy="-6" r="18" fill="#62b451" />
+            <circle cx="-5" cy="-11" r="10" fill="#79c665" />
+          </g>
         </g>
       );
     case "bush":
       return (
         <g transform={t}>
-          <circle cx="-9" cy="2" r="9" fill={night ? "#9d8ddb" : "#78c25f"} />
-          <circle cx="8" cy="3" r="8" fill={night ? "#9d8ddb" : "#78c25f"} />
-          <circle cx="0" cy="-4" r="10" fill={night ? "#ab9ce3" : "#86cc6c"} />
+          <g className={moving ? "animate-rustle" : undefined} style={moving ? { transformBox: "fill-box", transformOrigin: "50% 100%", animationDelay: `-${delay}s` } : undefined}>
+            <circle cx="-9" cy="2" r="9" fill={night ? "#9d8ddb" : "#78c25f"} />
+            <circle cx="8" cy="3" r="8" fill={night ? "#9d8ddb" : "#78c25f"} />
+            <circle cx="0" cy="-4" r="10" fill={night ? "#ab9ce3" : "#86cc6c"} />
+          </g>
         </g>
       );
     case "flowers":
@@ -202,6 +234,18 @@ function Piece({ type, x, y, s, bloom, night, delay }: { type: Decor; x: number;
         <g transform={t}>
           <ellipse cx="0" cy="0" rx="40" ry="22" fill="#86cfe8" />
           <ellipse cx="-8" cy="-4" rx="22" ry="9" fill="#a9def0" />
+          <ellipse
+            cx="2"
+            cy="2"
+            rx="26"
+            ry="13"
+            fill="none"
+            stroke="#ffffff"
+            strokeOpacity="0.85"
+            strokeWidth="1.6"
+            className="animate-ripple"
+            style={{ transformBox: "fill-box", transformOrigin: "center", animationDelay: `-${delay}s` }}
+          />
           <ellipse cx="18" cy="6" rx="6" ry="3" fill="#62b451" />
         </g>
       );
@@ -232,15 +276,17 @@ function Piece({ type, x, y, s, bloom, night, delay }: { type: Decor; x: number;
       return (
         <g transform={t}>
           <ellipse cx="4" cy="22" rx="16" ry="4" fill="rgb(0 0 0 / 0.08)" />
-          <path d="M2 22 C 0 10, -2 2, 2 -10" stroke="#b98552" strokeWidth="5" strokeLinecap="round" fill="none" />
-          {[-150, -100, -40, 10, 60].map((a) => (
-            <path
-              key={a}
-              d="M0 0 C 8 -6, 18 -6, 24 0 C 16 -1, 8 0, 0 0 Z"
-              fill={night ? "#3a8a6a" : "#3fae6b"}
-              transform={`translate(2 -10) rotate(${a})`}
-            />
-          ))}
+          <g className={moving ? "animate-rustle" : undefined} style={moving ? { transformBox: "fill-box", transformOrigin: "50% 100%", animationDelay: `-${delay}s` } : undefined}>
+            <path d="M2 22 C 0 10, -2 2, 2 -10" stroke="#b98552" strokeWidth="5" strokeLinecap="round" fill="none" />
+            {[-150, -100, -40, 10, 60].map((a) => (
+              <path
+                key={a}
+                d="M0 0 C 8 -6, 18 -6, 24 0 C 16 -1, 8 0, 0 0 Z"
+                fill={night ? "#3a8a6a" : "#3fae6b"}
+                transform={`translate(2 -10) rotate(${a})`}
+              />
+            ))}
+          </g>
         </g>
       );
     case "starfish":
@@ -262,8 +308,10 @@ function Piece({ type, x, y, s, bloom, night, delay }: { type: Decor; x: number;
       );
     case "wave":
       return (
-        <g transform={t} className="animate-float" style={{ animationDelay: `${delay}s` }}>
-          <path d="M-16 0 C -11 -6, -5 -6, 0 0 C 5 6, 11 6, 16 0" stroke="#ffffff" strokeOpacity={night ? 0.35 : 0.7} strokeWidth="3" strokeLinecap="round" fill="none" />
+        <g transform={t}>
+          <g className="animate-swell" style={{ animationDelay: `-${delay}s` }}>
+            <path d="M-16 0 C -11 -6, -5 -6, 0 0 C 5 6, 11 6, 16 0" stroke="#ffffff" strokeOpacity={night ? 0.35 : 0.75} strokeWidth="3" strokeLinecap="round" fill="none" />
+          </g>
         </g>
       );
     case "sparkle":
@@ -315,6 +363,21 @@ function Piece({ type, x, y, s, bloom, night, delay }: { type: Decor; x: number;
           <circle r="14" fill="none" stroke="#ffffff" strokeWidth="8" strokeDasharray="7 15" />
         </g>
       );
+    case "boat":
+      return (
+        <g transform={t}>
+          <g
+            className="animate-rock-boat"
+            style={{ transformBox: "fill-box", transformOrigin: "50% 85%", animationDelay: `-${delay}s` }}
+          >
+            <ellipse cx="0" cy="11" rx="22" ry="4" fill="#ffffff" fillOpacity="0.4" />
+            <path d="M-18 2 H18 L12 10 H-12 Z" fill={night ? "#b8566a" : "#ff6b7a"} />
+            <path d="M0 2 V-22" stroke="#8a6a4a" strokeWidth="2" strokeLinecap="round" />
+            <path d="M1.5 -20 L14 0 H1.5 Z" fill="#ffffff" />
+            <path d="M-1.5 -15 L-10 0 H-1.5 Z" fill="#ffd23f" />
+          </g>
+        </g>
+      );
   }
 }
 
@@ -343,35 +406,36 @@ interface IslandProps {
   roadSamples: { x: number; y: number }[];
   /** Island signs and anything else the scenery must leave clear. */
   keepClear: Rect[];
+  /** The island before this one, to know whether they meet at a coast. */
+  previous?: ResolvedChapter;
   reached: boolean;
   compact: boolean;
 }
 
-/** How far the top of each island reaches into the one above, as a soft wave. */
-export const SHORE = 44;
+/**
+ * How far each island fades in over the one before it. No hard edge between
+ * two adventures: the meadow melts into the sea, the sea into the hills.
+ */
+const BLEND = 220;
+const BLEND_COMPACT = 150;
 
-export function Island({ index, chapter, zone, width, roadD, roadSamples, keepClear, reached, compact }: IslandProps) {
+const isWater = (chapter: ResolvedChapter | undefined) => (chapter ? Boolean(PALETTES[themeFor(chapter)].land) : false);
+
+export function Island({ index, chapter, previous, zone, width, roadD, roadSamples, keepClear, reached, compact }: IslandProps) {
   const theme = themeFor(chapter);
   const palette = PALETTES[theme];
   const water = Boolean(palette.land);
   const night = theme === "night" || theme === "twilight";
-  const top = zone.top - (index === 0 ? 0 : SHORE);
-  const height = zone.bottom - top;
+  const first = index === 0;
+  const blend = compact ? BLEND_COMPACT : BLEND;
+  // Each island reaches half a blend up into the one before and half a blend
+  // down into the one after, so the fade always has ground under it.
+  const top = zone.top - (first ? 0 : blend / 2);
+  const height = zone.bottom + blend / 2 - top;
   const random = seeded(`island-${chapter.id}`);
-
-  // The top edge: a gentle wave, so islands meet like coastlines, not boxes.
-  const wave = index === 0 ? 0 : SHORE;
-  const crest = 14;
-  const steps = Math.max(4, Math.round(width / 220));
-  let edge = `M 0 ${wave}`;
-  for (let i = 0; i < steps; i += 1) {
-    const x0 = (i / steps) * width;
-    const x1 = ((i + 1) / steps) * width;
-    const lift = (i % 2 === 0 ? -1 : 1) * crest * (0.6 + random() * 0.4);
-    edge += ` Q ${((x0 + x1) / 2).toFixed(1)} ${(wave + lift).toFixed(1)} ${x1.toFixed(1)} ${wave}`;
-  }
-  const outline = `${edge} L ${width} ${height} L 0 ${height} Z`;
-  const clip = `island-clip-${chapter.id}`;
+  const id = `island-${chapter.id}`;
+  // Where land meets sea, waves lap along the join.
+  const coast = !first && water !== isWater(previous);
 
   // Wide enough that the sand has room for palms and starfish between the
   // road's clear lane and the water's edge.
@@ -402,7 +466,7 @@ export function Island({ index, chapter, zone, width, roadD, roadSamples, keepCl
 
   // A jittered grid over the island; each cell may hold one piece.
   const cell = compact ? 96 : 128;
-  const pieces: { type: Decor; x: number; y: number; s: number; delay: number }[] = [];
+  const pieces: { type: Decor; x: number; y: number; s: number; delay: number; moving: boolean }[] = [];
   for (let gy = zone.top + cell * 0.4; gy < zone.bottom - 20; gy += cell) {
     for (let gx = cell * 0.3; gx < width; gx += cell) {
       const x = gx + (random() - 0.5) * cell * 0.8;
@@ -419,7 +483,16 @@ export function Island({ index, chapter, zone, width, roadD, roadSamples, keepCl
       }
       const type = pick(where);
       if (!type) continue;
-      pieces.push({ type, x, y: y - top, s: (compact ? 0.85 : 1.05) + random() * 0.45, delay: random() * 3 });
+      pieces.push({
+        type,
+        x,
+        y: y - top,
+        s: (compact ? 0.85 : 1.05) + random() * 0.45,
+        delay: random() * 4,
+        // Most of the trees move in the breeze; a few stand still, so the
+        // map breathes rather than wobbles.
+        moving: random() < 0.7,
+      });
     }
   }
 
@@ -427,49 +500,166 @@ export function Island({ index, chapter, zone, width, roadD, roadSamples, keepCl
   const patches = palette.patch
     ? Array.from({ length: Math.round((width * height) / 90000) + 3 }, () => ({
         x: random() * width,
-        y: SHORE + random() * (height - SHORE),
+        y: random() * height,
         rx: 70 + random() * 140,
         ry: 40 + random() * 70,
       }))
     : [];
 
+  // A wavy line right across the island, for the lapping shoreline.
+  const shoreLine = (y: number, amplitude: number, length: number) => {
+    let d = `M -40 ${y}`;
+    for (let x = -40; x < width + 40; x += length) {
+      d += ` q ${length / 4} ${-amplitude} ${length / 2} 0 t ${length / 2} 0`;
+    }
+    return d;
+  };
+
+  const fade = first ? undefined : `linear-gradient(to bottom, transparent, #000 ${blend}px)`;
+
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-x-0 transition-[filter] duration-700"
-      style={{ top, height, filter: reached ? undefined : "saturate(0.6) brightness(1.02)" }}
+      className="pointer-events-none absolute inset-x-0 transition-[filter] duration-1000"
+      style={{
+        top,
+        height,
+        maskImage: fade,
+        WebkitMaskImage: fade,
+        filter: reached ? "saturate(1)" : "saturate(0.65)",
+        // Islands scrolled far off screen skip painting (and their animation) entirely.
+        contentVisibility: "auto",
+        containIntrinsicSize: `auto ${height}px`,
+      }}
     >
       <svg width={width} height={height} className="block overflow-hidden">
-        <defs>
-          <clipPath id={clip}>
-            <path d={outline} />
-          </clipPath>
-        </defs>
-        <path d={outline} fill={palette.ground} />
-        <g clipPath={`url(#${clip})`}>
-          {patches.map((p, i) => (
-            <ellipse key={i} cx={p.x} cy={p.y} rx={p.rx} ry={p.ry} fill={palette.patch} />
-          ))}
-          {water && (
-            <g transform={`translate(0 ${-top})`}>
-              <path d={roadD} fill="none" stroke={palette.shore} strokeOpacity="0.55" strokeWidth={landWidth + 22} strokeLinecap="round" strokeLinejoin="round" />
-              <path d={roadD} fill="none" stroke={palette.land} strokeWidth={landWidth} strokeLinecap="round" strokeLinejoin="round" />
-            </g>
-          )}
-          {theme === "night" && (
-            <g transform={`translate(${width - (compact ? 60 : 140)} ${SHORE + 90})`}>
-              <circle r={compact ? 26 : 38} fill="#fff4c2" />
-              <circle cx={compact ? 11 : 16} cy={compact ? -7 : -10} r={compact ? 23 : 34} fill={palette.ground} />
-            </g>
-          )}
-          {pieces.map((p, i) => (
-            <Piece key={i} type={p.type} x={p.x} y={p.y} s={p.s} bloom={palette.bloom} night={night} delay={p.delay} />
-          ))}
-        </g>
+        {water && (
+          <defs>
+            {/* Ripples drifting across the open water. */}
+            <pattern id={`${id}-ripples`} width="160" height="96" patternUnits="userSpaceOnUse">
+              <g fill="none" stroke="#ffffff" strokeOpacity={night ? 0.2 : 0.4} strokeWidth="2.4" strokeLinecap="round">
+                <path d="M14 22 q9 -7 18 0 t18 0" />
+                <path d="M92 58 q8 -6 16 0 t16 0" />
+                <path d="M46 84 q7 -5 14 0" />
+              </g>
+              <animateTransform attributeName="patternTransform" type="translate" from="0 0" to="160 0" dur="16s" repeatCount="indefinite" />
+            </pattern>
+          </defs>
+        )}
+        <rect width={width} height={height} fill={palette.ground} />
+        {patches.map((p, i) => (
+          <ellipse key={i} cx={p.x} cy={p.y} rx={p.rx} ry={p.ry} fill={palette.patch} />
+        ))}
+        {water && <rect width={width} height={height} fill={`url(#${id}-ripples)`} />}
+        {coast && (
+          <g fill="none" stroke="#ffffff" strokeLinecap="round">
+            <path d={shoreLine(blend * 0.52, 7, 90)} strokeOpacity="0.75" strokeWidth="3" strokeDasharray="46 22" className="animate-lap" />
+            <path
+              d={shoreLine(blend * 0.7, 5, 70)}
+              strokeOpacity="0.45"
+              strokeWidth="2.5"
+              strokeDasharray="30 30"
+              className="animate-lap"
+              style={{ animationDuration: "9s", animationDirection: "reverse" }}
+            />
+          </g>
+        )}
+        {water && (
+          <g transform={`translate(0 ${-top})`}>
+            {/* Surf washing up the sand and back, then the wet sand, then the sand. */}
+            <path
+              d={roadD}
+              fill="none"
+              stroke="#ffffff"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="animate-wash"
+              style={
+                {
+                  "--wash-from": `${landWidth + 18}px`,
+                  "--wash-to": `${landWidth + 52}px`,
+                  "--wash-strength": night ? 0.35 : 0.7,
+                } as CSSProperties
+              }
+            />
+            <path d={roadD} fill="none" stroke={palette.shore} strokeOpacity="0.55" strokeWidth={landWidth + 22} strokeLinecap="round" strokeLinejoin="round" />
+            <path d={roadD} fill="none" stroke={palette.land} strokeWidth={landWidth} strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+        )}
+        {theme === "night" && (
+          <g transform={`translate(${width - (compact ? 60 : 140)} ${(first ? 0 : blend / 2) + 90})`}>
+            <circle r={compact ? 44 : 64} fill="#fff4c2" fillOpacity="0.18" className="animate-glow" style={{ transformBox: "fill-box", transformOrigin: "center" }} />
+            <circle r={compact ? 26 : 38} fill="#fff4c2" />
+            <circle cx={compact ? 11 : 16} cy={compact ? -7 : -10} r={compact ? 23 : 34} fill={palette.ground} />
+            {/* Its light on the water, shimmering. */}
+            {[0, 1, 2, 3].map((i) => (
+              <rect
+                key={i}
+                x={-(18 - i * 3)}
+                y={(compact ? 40 : 56) + i * 14}
+                width={2 * (18 - i * 3)}
+                height="3"
+                rx="1.5"
+                fill="#fff4c2"
+                fillOpacity={0.5 - i * 0.1}
+                className="animate-pulse"
+                style={{ animationDelay: `${i * 0.35}s` }}
+              />
+            ))}
+          </g>
+        )}
+        {pieces.map((p, i) => (
+          <Piece key={i} type={p.type} x={p.x} y={p.y} s={p.s} bloom={palette.bloom} night={night} delay={p.delay} moving={p.moving} />
+        ))}
       </svg>
-      {/* Islands not reached yet sit under a light mist: still colourful
-          enough to want to get there. */}
-      {!reached && <div className="absolute inset-0 bg-white/15" />}
+      {/* Islands not reached yet sit under a light mist, still colourful
+          enough to want to get there. It lifts slowly when the buddy arrives. */}
+      <div className={`absolute inset-0 bg-white/20 transition-opacity duration-1000 ${reached ? "opacity-0" : "opacity-100"}`} />
+    </div>
+  );
+}
+
+/**
+ * Clouds drifting over the whole map, each with its shadow on the ground:
+ * one sky across every island, so the map moves as one place.
+ */
+export function Clouds({ width, height, compact }: { width: number; height: number; compact: boolean }) {
+  const random = seeded("clouds");
+  const count = Math.max(3, Math.round(height / (compact ? 640 : 780)));
+  const clouds = Array.from({ length: count }, (_, i) => ({
+    top: (i + 0.25 + random() * 0.5) * (height / count),
+    scale: (compact ? 0.7 : 1) * (0.8 + random() * 0.5),
+    duration: 80 + random() * 60,
+    delay: -random() * 140,
+  }));
+
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+      {clouds.map((cloud, i) => (
+        <div
+          key={i}
+          className="absolute left-0 animate-cloud"
+          style={
+            {
+              top: cloud.top,
+              animationDuration: `${cloud.duration}s`,
+              animationDelay: `${cloud.delay}s`,
+              "--from": `${-320 * cloud.scale}px`,
+              "--to": `${width + 40}px`,
+            } as CSSProperties
+          }
+        >
+          <svg width={280 * cloud.scale} height={170 * cloud.scale} viewBox="0 0 280 170">
+            <ellipse cx="170" cy="150" rx="92" ry="16" fill="rgb(30 26 60 / 0.07)" />
+            <g fill="#ffffff" fillOpacity="0.88">
+              <circle cx="90" cy="70" r="40" />
+              <circle cx="140" cy="52" r="52" />
+              <circle cx="194" cy="74" r="38" />
+              <rect x="60" y="70" width="170" height="40" rx="20" />
+            </g>
+          </svg>
+        </div>
+      ))}
     </div>
   );
 }

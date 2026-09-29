@@ -14,12 +14,15 @@ export default async function TrailPage() {
   const [catalog, { active, maxAge, buddy: picked }] = await Promise.all([getCatalog(), getViewer()]);
 
   // Each child walks their own trail, guided by the buddy they picked; with
-  // nobody watching, or no buddy yet, Bloop.
+  // nobody watching, or no buddy yet, Bloop. The buddy also hosts the first
+  // island, so the journey opens with the friend the child chose.
   const buddy = lookupCharacter(catalog, picked ?? "bloop") ?? catalog.characters[0];
+  const [first, ...rest] = trailFor(catalog, maxAge);
+  const chapters = first ? [{ ...first, host: buddy.id }, ...rest] : [];
 
   return (
     <TrailClient
-      chapters={trailFor(catalog, maxAge)}
+      chapters={chapters}
       characters={catalog.characters}
       buddy={buddy}
       profileId={active?.id ?? "guest"}
