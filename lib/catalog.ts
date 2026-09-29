@@ -54,7 +54,7 @@ function assertCatalog(value: unknown): Catalog {
     if (!face || ["x", "y", "size"].some((k) => typeof face[k] !== "number")) {
       fail(`characters[${i}].face needs numeric x, y and size`);
     }
-    for (const field of ["likes", "quotes"]) {
+    for (const field of ["likes", "helps", "quotes"]) {
       if (!Array.isArray(ch[field]) || !(ch[field] as unknown[]).every(isString)) {
         fail(`characters[${i}].${field} must be an array of strings`);
       }

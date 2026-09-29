@@ -80,6 +80,12 @@
   --animate-burst: burst 0.9s cubic-bezier(0.2, 0.7, 0.3, 1) both;
   --animate-float: float 1.4s ease-in-out infinite;
 
+  /* The loader: the logo breathing, three dots hopping in turn, all of it
+     fading in only after a beat so a quick page never flashes it. */
+  --animate-loader-in: fade 0.35s ease 0.18s both;
+  --animate-breathe: breathe 1.8s ease-in-out infinite;
+  --animate-dot: dot 1.1s ease-in-out infinite;
+
   @keyframes rise {
     0% { opacity: 0; transform: translateY(70%) scale(0.9); }
     60% { opacity: 1; }
@@ -178,6 +184,14 @@
     0%, 100% { translate: 0 0; }
     50% { translate: 0 -6px; }
   }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.06) rotate(-1.5deg); }
+  }
+  @keyframes dot {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.55; }
+    30% { transform: translateY(-9px); opacity: 1; }
+  }
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
@@ -198,6 +212,17 @@
   box-shadow:
     0 0 0 3px #ffffff,
     0 6px 16px -6px rgb(30 26 60 / 0.45);
+}
+
+/* The width of the in-app sidebar, for anything that measures the page by
+   the viewport. Zero where there is no sidebar. */
+:root {
+  --rail: 0px;
+}
+@media (min-width: 1024px) {
+  :root {
+    --rail: 272px;
+  }
 }
 
 @layer base {

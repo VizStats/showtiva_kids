@@ -49,6 +49,8 @@ export interface Character {
   /** First person, the way the character would say it. */
   bio: string;
   likes: string[];
+  /** What they help a child do, for "Meet your buddy": "Be brave and try new things". */
+  helps: string[];
   /** Said in a speech bubble when the character is tapped. */
   quotes: string[];
   /** Signature colour, its pale tint and its deep shade. */

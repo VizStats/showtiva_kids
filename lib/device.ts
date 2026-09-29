@@ -139,28 +139,32 @@ export function setTrailSeen(profileId: string, seen: number): void {
   updateTrail(profileId, (t) => (t.seen === seen ? t : { ...t, seen }));
 }
 
-/* ----------------------------------------------------------- grown-ups -- */
+/* -------------------------------------------------------------- photos -- */
 
-const GATE_KEY = "stk-gate";
-/** A passed gate holds for a few minutes, so a grown-up changing several
- *  settings is not asked a sum between each one. */
-const GATE_HOLD_MS = 5 * 60_000;
+// A child's photo, as a small square JPEG data URL. It lives in localStorage,
+// not the profiles cookie, which could never hold an image; so the server
+// draws initials first and the photo arrives once the page is in the
+// browser.
 
-export function readGateRaw(): string {
-  return read("session", GATE_KEY) ?? "";
+const photoKey = (profileId: string) => `stk-photo:${profileId}`;
+
+export function readPhotoRaw(profileId: string): string {
+  return read("local", photoKey(profileId)) ?? "";
 }
 
-export function gateOpen(raw: string, now = Date.now()): boolean {
-  const until = Number(raw);
-  return Number.isFinite(until) && until > now;
+/** False when the device has no room left for it. */
+export function savePhoto(profileId: string, dataUrl: string): boolean {
+  try {
+    window.localStorage.setItem(photoKey(profileId), dataUrl);
+  } catch {
+    return false;
+  }
+  window.dispatchEvent(new Event(EVENT));
+  return true;
 }
 
-export function openGate(): void {
-  write("session", GATE_KEY, String(Date.now() + GATE_HOLD_MS));
-}
-
-export function closeGate(): void {
-  write("session", GATE_KEY, null);
+export function removePhoto(profileId: string): void {
+  write("local", photoKey(profileId), null);
 }
 
 /* --------------------------------------------------------------- reset -- */

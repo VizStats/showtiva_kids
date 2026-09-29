@@ -9,12 +9,13 @@ import type { Profile } from "@/lib/profiles";
 import { useClock } from "@/lib/use-client";
 import { fractionWatched, parseAll, readAllRaw, subscribeProgress } from "@/lib/watch-progress";
 
-import Character from "../_components/Character";
-import Face from "../_components/Face";
-import Icon from "../_components/Icon";
-import Row, { ROW_CARD } from "../_components/Row";
-import ShowArt, { Trio } from "../_components/ShowArt";
-import ShowCard from "../_components/ShowCard";
+import Character from "@/app/_components/Character";
+import Face from "@/app/_components/Face";
+import Icon from "@/app/_components/Icon";
+import KidAvatar from "@/app/_components/KidAvatar";
+import Row, { ROW_CARD } from "@/app/_components/Row";
+import ShowArt, { Trio } from "@/app/_components/ShowArt";
+import ShowCard from "@/app/_components/ShowCard";
 import TrailTeaser from "./TrailTeaser";
 
 export interface HomeRow {
@@ -30,19 +31,21 @@ interface HomeClientProps {
   featured: ShowLite[];
   rows: HomeRow[];
   shows: ShowLite[];
-  /** Null when nobody has picked a profile yet: everything shows. */
+  /** The child watching; null before anyone is picked, when everything shows. */
   profile: Profile | null;
+  /** Whether any kids have been added yet. */
+  hasKids: boolean;
   trail: ResolvedChapter[];
-  /** The profile's buddy, who guides the trail; Bloop for a guest. */
+  /** The child's buddy, who guides the trail; Bloop until they pick. */
   buddy: CharacterData;
 }
 
-export default function HomeClient({ characters, featured, rows, shows, profile, trail, buddy }: HomeClientProps) {
+export default function HomeClient({ characters, featured, rows, shows, profile, hasKids, trail, buddy }: HomeClientProps) {
   const byId = (id: CharacterId) => characters.find((c) => c.id === id);
 
   return (
     <main className="pb-16">
-      {profile ? <Greeting profile={profile} buddy={byId(profile.character)} /> : <SetUpPrompt characters={characters} />}
+      {profile ? <Greeting profile={profile} buddy={buddy} /> : <SetUpPrompt characters={characters} hasKids={hasKids} />}
       {featured.length > 0 && <Hero shows={featured} characters={characters} />}
       <TrailTeaser chapters={trail} buddy={buddy} profileId={profile?.id ?? "guest"} />
       <FriendsRail characters={characters} />
@@ -60,7 +63,7 @@ export default function HomeClient({ characters, featured, rows, shows, profile,
 
 /* ------------------------------------------------------------ greeting -- */
 
-function Greeting({ profile, buddy }: { profile: Profile; buddy?: CharacterData }) {
+function Greeting({ profile, buddy }: { profile: Profile; buddy: CharacterData }) {
   // The hour decides the words, so it is read after mount: the server's
   // clock is not the child's.
   const now = useClock(60_000);
@@ -68,20 +71,21 @@ function Greeting({ profile, buddy }: { profile: Profile; buddy?: CharacterData 
   const hello = hour === null ? "Hi" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   return (
-    <div className="mx-auto flex max-w-[1320px] items-end justify-between gap-4 px-6 pt-5 max-[640px]:px-4">
-      <h1 className="font-display text-[clamp(1.6rem,3vw,2.2rem)] leading-tight font-medium">
-        {hello}, <span style={buddy ? { color: buddy.deep } : undefined}>{profile.name}</span>!
+    <div className="mx-auto flex max-w-[1320px] items-center gap-3.5 px-6 pt-5 max-[640px]:px-4">
+      <KidAvatar profile={profile} className="size-11 flex-none ring-3 ring-canvas max-[640px]:size-9" />
+      <h1 className="min-w-0 font-display text-[clamp(1.6rem,3vw,2.2rem)] leading-tight font-medium">
+        {hello}, <span style={{ color: buddy.deep }}>{profile.name}</span>!
       </h1>
     </div>
   );
 }
 
 /**
- * Shown instead of the greeting when no profile is picked. The catalog is
- * already open behind it; this only offers the age filter, it does not stand
- * in the way.
+ * Shown instead of the greeting when nobody is watching yet: pick who is, or
+ * add the kids first. The catalog is already open behind it; this only offers
+ * the age filter, it does not stand in the way.
  */
-function SetUpPrompt({ characters }: { characters: CharacterData[] }) {
+function SetUpPrompt({ characters, hasKids }: { characters: CharacterData[]; hasKids: boolean }) {
   const trio = ["kai", "bloop", "nova"]
     .map((id) => characters.find((c) => c.id === id))
     .filter((c): c is CharacterData => Boolean(c));
@@ -96,16 +100,18 @@ function SetUpPrompt({ characters }: { characters: CharacterData[] }) {
             ))}
           </span>
           <p className="min-w-0 text-[0.98rem] leading-snug text-ink-soft">
-            <strong className="block font-display text-[1.15rem] font-medium text-ink">Who&apos;s watching?</strong>
-            <span className="max-[640px]:hidden">Set up a profile so we only show shows made for their age.</span>
+            <strong className="block font-display text-[1.15rem] font-medium text-ink">{hasKids ? "Who's watching?" : "Add your kids"}</strong>
+            <span className="max-[640px]:hidden">
+              {hasKids ? "Pick who's watching so we only show shows made for their age." : "Tell us their ages so we only show shows made for them."}
+            </span>
           </p>
         </div>
         <Link
-          href="/profiles"
+          href={hasKids ? "/profiles" : "/profiles/new"}
           className="inline-flex h-12 flex-none items-center rounded-full bg-ink px-5 text-[0.95rem] font-semibold text-white transition-transform hover:-translate-y-px max-[640px]:h-10 max-[640px]:px-4 max-[640px]:text-[0.88rem]"
         >
-          <span className="max-[640px]:hidden">Set up a profile</span>
-          <span className="hidden max-[640px]:inline">Set up</span>
+          <span className="max-[640px]:hidden">{hasKids ? "Choose" : "Add your kids"}</span>
+          <span className="hidden max-[640px]:inline">{hasKids ? "Choose" : "Add"}</span>
         </Link>
       </div>
     </div>
@@ -138,7 +144,7 @@ function Hero({ shows, characters }: { shows: ShowLite[]; characters: CharacterD
 
   return (
     <section
-      className="mx-auto max-w-[1320px] px-6 pt-[clamp(3.5rem,6vw,5.5rem)] max-[640px]:px-4"
+      className="@container mx-auto max-w-[1320px] px-6 pt-[clamp(3.5rem,6vw,5.5rem)] max-[640px]:px-4"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       // A swipe across the banner moves it on, the way a phone expects.
@@ -154,7 +160,7 @@ function Hero({ shows, characters }: { shows: ShowLite[]; characters: CharacterD
       aria-roledescription="carousel"
       aria-label="Featured shows"
     >
-      <div className="relative h-[clamp(360px,40vw,470px)] max-[700px]:h-[540px]" style={tint(host)}>
+      <div className="relative h-[clamp(360px,40cqw,470px)] @max-[860px]:h-[540px]" style={tint(host)}>
         {/* Every slide's ground is mounted, and they cross-fade. */}
         {shows.map((s, i) => (
           <div
@@ -178,13 +184,13 @@ function Hero({ shows, characters }: { shows: ShowLite[]; characters: CharacterD
             characters={characters}
             seed={show.id}
             rise
-            className="absolute right-[1%] bottom-0 h-[112%] w-[54%] [clip-path:inset(-50%_-50%_0_-50%)] max-[700px]:top-[-34px] max-[700px]:right-0 max-[700px]:bottom-auto max-[700px]:h-[54%] max-[700px]:w-full"
+            className="absolute right-[1%] bottom-0 h-[112%] w-[54%] [clip-path:inset(-50%_-50%_0_-50%)] @max-[860px]:top-[-34px] @max-[860px]:right-0 @max-[860px]:bottom-auto @max-[860px]:h-[54%] @max-[860px]:w-full"
           />
         ) : (
           <div
             key={show.id}
             aria-hidden
-            className="pointer-events-none absolute right-[6%] bottom-0 flex h-[118%] items-end [clip-path:inset(-50%_-50%_0_-50%)] max-[700px]:top-[-44px] max-[700px]:right-1/2 max-[700px]:bottom-auto max-[700px]:h-[58%] max-[700px]:translate-x-1/2"
+            className="pointer-events-none absolute right-[6%] bottom-0 flex h-[118%] items-end [clip-path:inset(-50%_-50%_0_-50%)] @max-[860px]:top-[-44px] @max-[860px]:right-1/2 @max-[860px]:bottom-auto @max-[860px]:h-[58%] @max-[860px]:translate-x-1/2"
           >
             <span className="h-full animate-rise">
               <Character character={host} decorative priority className="h-full animate-bob [animation-delay:0.9s]" />
@@ -195,21 +201,21 @@ function Hero({ shows, characters }: { shows: ShowLite[]; characters: CharacterD
         {/* The words. */}
         <div
           className={cx(
-            "absolute inset-y-0 left-0 flex flex-col justify-center pl-[clamp(1.75rem,4.5vw,4rem)] text-(--c-on)",
+            "absolute inset-y-0 left-0 flex flex-col justify-center pr-[3cqw] pl-[clamp(1.75rem,4.5cqw,4rem)] text-(--c-on)",
             crew ? "w-[46%]" : "w-[54%]",
-            "max-[700px]:inset-x-0 max-[700px]:top-auto max-[700px]:bottom-0 max-[700px]:w-full max-[700px]:justify-end max-[700px]:px-5 max-[700px]:pb-6",
+            "@max-[860px]:inset-x-0 @max-[860px]:top-auto @max-[860px]:bottom-0 @max-[860px]:w-full @max-[860px]:justify-end @max-[860px]:px-5 @max-[860px]:pb-6",
           )}
         >
           <div key={show.id} className="animate-fade-up">
             <p className="text-[0.78rem] font-bold tracking-[0.12em] uppercase opacity-75">
               {show.format} · Ages {show.ageMin}+
             </p>
-            <h2 className="mt-3 font-display text-[clamp(2.2rem,4.6vw,3.8rem)] leading-[0.98] font-medium text-balance">
+            <h2 className="mt-3 font-display text-[clamp(2.2rem,4.6cqw,3.8rem)] leading-[0.98] font-medium text-balance">
               {show.title}
             </h2>
-            <p className="mt-3 max-w-[26rem] text-[clamp(1rem,1.3vw,1.1rem)] leading-relaxed font-medium opacity-85">{show.logline}</p>
+            <p className="mt-3 max-w-[26rem] text-[clamp(1rem,1.3cqw,1.1rem)] leading-relaxed font-medium opacity-85">{show.logline}</p>
           </div>
-          <div className="mt-7 flex items-center gap-3 max-[700px]:mt-5">
+          <div className="mt-7 flex items-center gap-3 @max-[860px]:mt-5">
             <Link
               href={`/watch/${show.id}?play=1`}
               className="group inline-flex h-14 items-center gap-3 rounded-full bg-paper pr-7 pl-2 text-[1.02rem] font-bold text-ink transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
@@ -229,7 +235,7 @@ function Hero({ shows, characters }: { shows: ShowLite[]; characters: CharacterD
         </div>
 
         {/* Which slide, as small pills along the bottom edge. */}
-        <div className="absolute bottom-6 left-[clamp(1.75rem,4.5vw,4rem)] flex gap-1.5 max-[700px]:hidden">
+        <div className="absolute bottom-6 left-[clamp(1.75rem,4.5cqw,4rem)] flex gap-1.5 @max-[860px]:hidden">
           {shows.map((s, i) => (
             <button
               key={s.id}

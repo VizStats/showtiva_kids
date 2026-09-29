@@ -9,10 +9,10 @@ import Link from "next/link";
 import { cx, tint } from "@/lib/cx";
 import type { Character as CharacterData, ShowLite } from "@/lib/catalog-types";
 
-import Character from "../../_components/Character";
-import Face from "../../_components/Face";
-import Row, { ROW_CARD } from "../../_components/Row";
-import ShowCard from "../../_components/ShowCard";
+import Character from "@/app/_components/Character";
+import Face from "@/app/_components/Face";
+import Row, { ROW_CARD } from "@/app/_components/Row";
+import ShowCard from "@/app/_components/ShowCard";
 
 interface FriendClientProps {
   character: CharacterData;

@@ -1,47 +1,38 @@
 "use client";
 
 // The grown-ups area. The one screen in the app that is allowed to look like
-// settings: calm, dense, no characters bouncing. It opens behind the gate,
-// and the gate holds for a few minutes so a parent changing three things is
-// asked one sum, not three.
+// settings: calm, dense, no characters bouncing. Open to anyone for now; it
+// gets a proper lock when there are accounts to sign in to.
 
 import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { SHOWTIVA_URL, cx, tint } from "@/lib/cx";
-import type { Character } from "@/lib/catalog-types";
+import { SHOWTIVA_URL, cx } from "@/lib/cx";
 import {
   clearDevice,
-  closeGate,
-  gateOpen,
   parseTimer,
-  readGateRaw,
   readTimerRaw,
+  removePhoto,
   setTimer,
   subscribeDevice,
 } from "@/lib/device";
-import { AGE_BANDS, EMPTY_PROFILES, writeProfiles, type AgeBandId, type ProfileState } from "@/lib/profiles";
+import { AGE_BANDS, EMPTY_PROFILES, ageBand, ageFromBirth, writeProfiles, type AgeBandId, type ProfileState } from "@/lib/profiles";
 import { useClock } from "@/lib/use-client";
 
-import Face from "../_components/Face";
 import Icon from "../_components/Icon";
-import ParentGate from "../_components/ParentGate";
+import KidAvatar from "../_components/KidAvatar";
 
 const TIMER_CHOICES = [null, 15, 30, 45, 60] as const;
 
-export default function ParentsClient({ characters, state }: { characters: Character[]; state: ProfileState }) {
+export default function ParentsClient({ state, buddies }: { state: ProfileState; buddies: Record<string, string | null> }) {
   const router = useRouter();
-  const gateRaw = useSyncExternalStore(subscribeDevice, readGateRaw, () => "");
-  // Checked against the viewer's clock; null on the server, which cannot know.
+  // The viewer's clock; null on the server, which cannot know it.
   const now = useClock(1000);
-  const unlocked = now !== null && gateOpen(gateRaw, now);
 
   const timer = parseTimer(useSyncExternalStore(subscribeDevice, readTimerRaw, () => ""));
   const [confirmReset, setConfirmReset] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
-
-  const buddy = (id: string) => characters.find((c) => c.id === id) ?? characters[0];
 
   const save = (next: ProfileState) => {
     writeProfiles(next);
@@ -49,19 +40,6 @@ export default function ParentsClient({ characters, state }: { characters: Chara
   };
 
   if (now === null) return <main className="min-h-dvh" />;
-
-  if (!unlocked) {
-    return (
-      <main className="grid min-h-dvh place-items-center bg-canvas px-4 py-10">
-        <div className="flex w-full flex-col items-center">
-          <ParentGate inline reason="Open the grown-ups area" onPass={() => undefined} />
-          <Link href="/watch" className="mt-6 text-[0.95rem] font-semibold text-ink-soft hover:text-ink">
-            Back to ShowTiva Kids
-          </Link>
-        </div>
-      </main>
-    );
-  }
 
   const minutesLeft = timer ? Math.max(0, Math.ceil((timer.endsAt - now) / 60_000)) : null;
 
@@ -72,17 +50,13 @@ export default function ParentsClient({ characters, state }: { characters: Chara
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/logo.svg" alt="ShowTiva Kids" className="h-10 w-auto" />
         </Link>
-        <button
-          type="button"
-          onClick={() => {
-            closeGate();
-            router.push("/watch");
-          }}
-          className="inline-flex h-12 cursor-pointer items-center gap-2 rounded-full bg-ink px-5 text-[0.95rem] font-semibold text-white"
+        <Link
+          href="/watch"
+          className="inline-flex h-12 items-center gap-2 rounded-full bg-ink pr-5 pl-4 text-[0.95rem] font-semibold text-white"
         >
-          <Icon name="lock" className="size-5" />
-          Lock and go back
-        </button>
+          <Icon name="back" className="size-5" />
+          Back to watching
+        </Link>
       </header>
 
       <div className="mx-auto max-w-[880px] px-6 max-[640px]:px-4">
@@ -90,22 +64,28 @@ export default function ParentsClient({ characters, state }: { characters: Chara
         <p className="mt-3 text-[1.02rem] text-ink-soft">Everything here stays on this device. There is no account to sign in to.</p>
 
         {/* ---- profiles ---- */}
-        <Panel title="Profiles" icon="profiles" note="Each profile only sees shows for its age.">
+        <Panel title="Your kids" icon="profiles" note="Each child only sees shows for the level you choose.">
           {state.list.length === 0 ? (
             <p className="text-[0.98rem] text-ink-soft">No profiles yet.</p>
           ) : (
             <ul className="divide-y divide-line">
               {state.list.map((profile) => {
-                const b = buddy(profile.character);
                 return (
                   <li key={profile.id} className="flex flex-wrap items-center gap-4 py-4 first:pt-0 last:pb-0">
-                    <span className="rounded-full bg-(--c) p-[3px]" style={tint(b)}>
-                      <Face character={b} plain className="block size-12" />
-                    </span>
+                    <KidAvatar profile={profile} className="size-14" />
                     <span className="min-w-[7rem] flex-1">
                       <span className="block font-display text-[1.25rem] leading-tight font-medium">{profile.name}</span>
-                      <span className="text-[0.88rem] text-ink-soft">Buddy: {b.name}</span>
+                      <span className="text-[0.88rem] text-ink-soft">
+                        {profile.birth ? `${ageFromBirth(profile.birth, new Date(now))} years old` : ageBand(profile.age).range}
+                        {buddies[profile.id] ? ` · Buddy: ${buddies[profile.id]}` : ""}
+                      </span>
                     </span>
+                    <Link
+                      href={`/profiles/new?edit=${profile.id}`}
+                      className="inline-flex h-10 items-center rounded-full px-4 text-[0.88rem] font-bold text-ink ring-1 ring-line transition-colors hover:bg-mist"
+                    >
+                      Edit
+                    </Link>
                     <div className="flex flex-wrap gap-1 rounded-full bg-mist p-1" role="radiogroup" aria-label={`Age for ${profile.name}`}>
                       {AGE_BANDS.map((band) => (
                         <button
@@ -135,6 +115,7 @@ export default function ParentsClient({ characters, state }: { characters: Chara
                           type="button"
                           onClick={() => {
                             const list = state.list.filter((p) => p.id !== profile.id);
+                            removePhoto(profile.id);
                             save({ active: state.active === profile.id ? null : state.active, list });
                             setRemoving(null);
                           }}
@@ -162,11 +143,11 @@ export default function ParentsClient({ characters, state }: { characters: Chara
             </ul>
           )}
           <Link
-            href="/profiles?add=1"
+            href="/profiles/new"
             className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-mist px-4 text-[0.92rem] font-bold text-ink transition-colors hover:bg-[#ebe3d6]"
           >
             <Icon name="plus" className="size-5" />
-            Add a profile
+            Add a child
           </Link>
         </Panel>
 
