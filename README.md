@@ -21,11 +21,12 @@ Open [http://localhost:3000](http://localhost:3000).
 |---|---|
 | `/` | One-screen landing: the logo, the crew, and the way in |
 | `/profiles` | "Who's watching?" Each child picks their own picture, then Watch. With no kids yet it goes to `/profiles/new` |
-| `/profiles/new` | "Add your kids": a photo from the device, a name and a birth month for each child |
+| `/profiles/new` | "Add your kids": a photo from the device, a name and a birth month for each child. The birthday sets their level (Sprouts 4 and under, Explorers 5 to 8, Voyagers 9 to 12); there is no picker, and it moves up by itself as they grow |
 | `/buddy` | "Choose your buddy": one friend big on their own colour with their name huge behind, the others small either side; arrows, swipe or arrow keys move between them. Tap the big one to make them jump; "Select" makes them this child's buddy, then, after a short load, they perform: they bound in and introduce themselves out loud, one line at a time with a move for each (a different voice per friend, with sound on/off, again and skip), and "Start journey" goes onto the trail, which they guide |
 | `/trail` | Home, and the game: stops on a winding road through seven islands, only shows for the child's age. Their buddy hosts the first island and guides them all the way; the next stop unlocks when one is watched, each island ends in a treasure chest holding a sticker, and a heart on each stop saves it to their favourites. The islands melt into one another rather than meeting at an edge, and the map is always gently moving: rippling water, surf washing the sand, lapping shorelines, swaying trees, rocking boats, ringing ponds and clouds drifting over it all |
+| `/buddies` | The crew: every buddy as a full-length portrait, with a search that knows what they love. Tap one and they fill the screen and talk (tap again for more), with their story, their shows and "Choose" to make them the child's buddy. Opened from the buddy switcher |
 | `/watch/[id]` | A show, opened from favourites: banner, who's in it, episodes by season, the player |
-| `/parents` | Grown-ups area: the kids and their levels, break timer, reset |
+| `/parents` | Grown-ups area: each kid's level and progress, break timer, buddy voices, reset |
 
 Inside the app there is no bar and no menu, just buttons floating over the top corners: Favourites on the left, and on the right the child watching (switch kids, "Who's watching?", Grown-ups) and their buddy (swap to another friend on the spot, or meet them all on the stage). The old `/watch` and `/friends` addresses redirect to the trail. Pages load behind the ShowTiva Kids logo.
 

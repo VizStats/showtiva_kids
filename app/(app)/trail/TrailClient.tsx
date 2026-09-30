@@ -15,6 +15,7 @@
 // real coordinates rather than percentages.
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 
 import { cx, tint } from "@/lib/cx";
 import type { Character as CharacterData, ResolvedChapter, ResolvedStop } from "@/lib/catalog-types";
@@ -706,6 +707,19 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
       )}
 
       {book && <StickerBook chapters={chapters} characters={characters} progress={progress} onClose={() => setBook(false)} />}
+
+      {/* The way to the whole crew, floating in the corner: this child's buddy first. */}
+      <Link
+        href="/buddies"
+        className="fixed right-4 bottom-4 z-30 inline-flex h-14 items-center gap-3 rounded-full bg-paper/95 pr-5 pl-2 shadow-lift ring-1 ring-line backdrop-blur-md transition-transform hover:-translate-y-0.5 max-[640px]:right-3 max-[640px]:bottom-[max(0.75rem,env(safe-area-inset-bottom))] max-[640px]:h-12 max-[640px]:pr-4"
+      >
+        <span className="flex -space-x-3">
+          {[buddy, ...characters.filter((c) => c.id !== buddy.id)].slice(0, 3).map((character) => (
+            <Face key={character.id} character={character} className="size-10 ring-2 ring-paper max-[640px]:size-8" />
+          ))}
+        </span>
+        <span className="font-display text-[1.1rem] font-medium max-[640px]:text-[1rem]">The crew</span>
+      </Link>
     </main>
   );
 }

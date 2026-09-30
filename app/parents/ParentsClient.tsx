@@ -25,17 +25,7 @@ import {
   setVoiceOn,
   subscribeDevice,
 } from "@/lib/device";
-import {
-  AGE_BANDS,
-  EMPTY_PROFILES,
-  MAX_PROFILES,
-  ageBand,
-  ageFromBirth,
-  writeProfiles,
-  type AgeBandId,
-  type Profile,
-  type ProfileState,
-} from "@/lib/profiles";
+import { EMPTY_PROFILES, MAX_PROFILES, ageBand, ageFromBirth, writeProfiles, type Profile, type ProfileState } from "@/lib/profiles";
 import { useClock } from "@/lib/use-client";
 
 import Icon from "../_components/Icon";
@@ -88,7 +78,10 @@ export default function ParentsClient({ state, characters }: { state: ProfileSta
           </p>
         </div>
 
-        <Section title="Kids" hint="Each child only sees the shows for the level set here, and keeps their own buddy, trail and favourites.">
+        <Section
+          title="Kids"
+          hint="Each child sees the shows for their age, and keeps their own buddy, trail and favourites. Their level moves up by itself as they grow."
+        >
           {state.list.length === 0 ? (
             <p className="text-[0.98rem] text-ink-soft">No kids added yet.</p>
           ) : (
@@ -99,7 +92,6 @@ export default function ParentsClient({ state, characters }: { state: ProfileSta
                   profile={profile}
                   buddy={characters.find((c) => c.id === profile.buddy) ?? null}
                   now={now}
-                  onLevel={(age) => save({ ...state, list: state.list.map((p) => (p.id === profile.id ? { ...p, age } : p)) })}
                   onRemove={() => {
                     removePhoto(profile.id);
                     save({ active: state.active === profile.id ? null : state.active, list: state.list.filter((p) => p.id !== profile.id) });
@@ -239,13 +231,11 @@ function KidRow({
   profile,
   buddy,
   now,
-  onLevel,
   onRemove,
 }: {
   profile: Profile;
   buddy: Character | null;
   now: number;
-  onLevel: (age: AgeBandId) => void;
   onRemove: () => void;
 }) {
   const trail = parseTrail(useSyncExternalStore(subscribeDevice, () => readTrailRaw(profile.id), () => ""));
@@ -282,17 +272,11 @@ function KidRow({
             ),
           )}
         </p>
-        <div className="mt-4">
-          <Segmented
-            label={`Level for ${profile.name}`}
-            options={AGE_BANDS.map((b) => ({ value: b.id, label: b.label }))}
-            value={profile.age}
-            onChange={onLevel}
-          />
-          <p className="mt-2 text-[0.85rem] text-ink-faint">
-            {band.range}. {band.blurb}
-          </p>
-        </div>
+        <p className="mt-3 text-[0.9rem]">
+          <span className="font-semibold">{band.label}</span>
+          <span className="text-ink-soft"> · {band.range}</span>
+        </p>
+        <p className="mt-0.5 text-[0.85rem] text-ink-faint">{band.blurb}</p>
       </div>
       <div className="flex flex-none items-center gap-4 pt-1 text-[0.9rem] font-semibold max-[640px]:w-full max-[640px]:pt-0 max-[640px]:pl-16">
         {removing ? (

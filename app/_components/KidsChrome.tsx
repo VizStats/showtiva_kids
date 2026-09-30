@@ -209,6 +209,7 @@ function KidSwitcher({
           )}
           <Link
             href="/profiles"
+            onClick={onDone}
             className="flex items-center gap-3 rounded-2xl p-3 text-[0.95rem] font-semibold text-ink-soft transition-colors hover:bg-mist hover:text-ink"
           >
             <Icon name="profiles" className="size-5" />
@@ -216,6 +217,7 @@ function KidSwitcher({
           </Link>
           <Link
             href="/parents"
+            onClick={onDone}
             className="flex items-center gap-3 rounded-2xl p-3 text-[0.95rem] font-semibold text-ink-soft transition-colors hover:bg-mist hover:text-ink"
           >
             <Icon name="lock" className="size-5" />
@@ -301,11 +303,12 @@ function BuddySwitcher({
           </ul>
           <div className="my-2 h-px bg-line" />
           <Link
-            href="/buddy"
+            href="/buddies"
+            onClick={onDone}
             className="flex items-center gap-3 rounded-2xl p-2.5 text-[0.95rem] font-semibold text-ink-soft transition-colors hover:bg-mist hover:text-ink"
           >
-            <Icon name="sparkle" className="size-5" />
-            Meet them on the stage
+            <Icon name="friends" className="size-5" />
+            See the whole crew
           </Link>
         </div>
       )}

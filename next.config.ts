@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
     "/profiles": ["./data/**"],
     "/profiles/new": ["./data/**"],
     "/buddy": ["./data/**"],
+    "/buddies": ["./data/**"],
     "/watch/[id]": ["./data/**"],
     "/trail": ["./data/**"],
     "/parents": ["./data/**"],
