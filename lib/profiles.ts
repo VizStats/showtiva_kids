@@ -17,24 +17,29 @@ export const PROFILES_COOKIE = "stk_profiles";
 export const MAX_PROFILES = 6;
 export const MAX_NAME_LENGTH = 16;
 
+/**
+ * The three levels of show. A child's level comes from their birthday, never
+ * a picker, and moves up on its own as they grow (see parseProfiles). The ids
+ * are what is stored; the labels are what people see.
+ */
 export const AGE_BANDS = [
   {
     id: "preschool",
-    label: "Preschool",
+    label: "Sprouts",
     range: "4 and under",
     maxAge: 4,
     blurb: "Songs, counting, gentle stories and first cartoons.",
   },
   {
     id: "younger",
-    label: "Younger",
+    label: "Explorers",
     range: "Ages 5 to 8",
     maxAge: 8,
     blurb: "Adventures, science, skate parks and silly shows.",
   },
   {
     id: "older",
-    label: "Older",
+    label: "Voyagers",
     range: "Ages 9 to 12",
     maxAge: 12,
     blurb: "Everything on ShowTiva Kids, including coding and deep-sea docs.",
@@ -46,7 +51,7 @@ export type AgeBandId = (typeof AGE_BANDS)[number]["id"];
 export interface Profile {
   id: string;
   name: string;
-  /** What they may watch. Suggested from the birthday, set by a grown-up. */
+  /** Their level of show, from their birthday. */
   age: AgeBandId;
   /** Birth month, "2019-04". Month and year only: enough for an age. */
   birth?: string;
@@ -136,7 +141,13 @@ export function parseProfiles(raw: string | undefined | null): ProfileState {
     ? state.list
         .filter(isProfile)
         .slice(0, MAX_PROFILES)
-        .map((profile) => ({ ...profile, buddy: readBuddy(profile.buddy) }))
+        // A child's level follows their age, so it moves up by itself on the
+        // birthday that crosses into the next one.
+        .map((profile) => ({
+          ...profile,
+          age: profile.birth ? bandForAge(ageFromBirth(profile.birth, new Date())) : profile.age,
+          buddy: readBuddy(profile.buddy),
+        }))
     : [];
   const active = list.some((p) => p.id === state.active) ? (state.active as string) : null;
   return { active, list };

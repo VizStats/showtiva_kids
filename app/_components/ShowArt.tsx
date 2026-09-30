@@ -84,6 +84,21 @@ const SHAPES: Record<Motif, string> = {
   bubbles: "M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17zm-3.2 3.8a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4z",
 };
 
+/** One motif shape on its own, in the current colour: a drop, a gear, a note. */
+export function MotifGlyph({ motif, className, style }: { motif: Motif; className?: string; style?: CSSProperties }) {
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className={className} style={style}>
+      <path
+        d={SHAPES[motif]}
+        fill="currentColor"
+        fillRule="evenodd"
+        stroke={motif === "leaves" ? "currentColor" : undefined}
+        strokeWidth={motif === "leaves" ? 1.4 : undefined}
+      />
+    </svg>
+  );
+}
+
 export function MotifLayer({ motif, seed, onSoft }: { motif: Motif; seed: string; onSoft: boolean }) {
   const random = seeded(`${seed}:motif`);
   const cols = 6;

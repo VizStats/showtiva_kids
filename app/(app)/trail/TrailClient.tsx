@@ -15,10 +15,22 @@
 // real coordinates rather than percentages.
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 
 import { cx, tint } from "@/lib/cx";
 import type { Character as CharacterData, ResolvedChapter, ResolvedStop } from "@/lib/catalog-types";
-import { markStopDone, openChest, parseTrail, readTrailRaw, setTrailSeen, subscribeDevice, type TrailProgress } from "@/lib/device";
+import {
+  markStopDone,
+  openChest,
+  parseFavourites,
+  parseTrail,
+  readFavouritesRaw,
+  readTrailRaw,
+  setTrailSeen,
+  subscribeDevice,
+  toggleFavourite,
+  type TrailProgress,
+} from "@/lib/device";
 import { currentIndex, isComplete, trailItems, WATCHED_FRACTION, type TrailItem } from "@/lib/trail";
 import { parseProgress, readRaw, resumeSeconds, saveProgress } from "@/lib/watch-progress";
 
@@ -29,7 +41,7 @@ import Face from "@/app/_components/Face";
 import Icon from "@/app/_components/Icon";
 import KidsPlayer from "@/app/_components/KidsPlayer";
 import ShowArt from "@/app/_components/ShowArt";
-import { Island, type Rect } from "./Scenery";
+import { Clouds, Island, type Rect } from "./Scenery";
 
 interface TrailClientProps {
   chapters: ResolvedChapter[];
@@ -130,8 +142,9 @@ function layoutTrail(chapters: ResolvedChapter[], width: number) {
   const nodes: Placed[] = [];
   const signs: Sign[] = [];
   const tops: number[] = [];
-  // The first sign starts below the floating scoreboard.
-  let y = compact ? 112 : 124;
+  // The first sign starts below the floating scoreboard, which on narrower
+  // screens sits under the floating buttons rather than between them.
+  let y = width < 1024 ? (compact ? 144 : 152) : 124;
   let i = 0;
 
   chapters.forEach((chapter, ci) => {
@@ -311,7 +324,7 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
   return (
     <main className="relative">
       {/* ---- the scoreboard, floating over the map ---- */}
-      <div className="pointer-events-none sticky top-[72px] z-40 -mb-[76px] flex justify-center px-3 pt-3 max-[640px]:top-16">
+      <div className="pointer-events-none sticky top-4 z-40 -mb-[64px] flex justify-center px-3 max-[1023px]:top-[4.5rem] max-[640px]:top-16">
         <div
           className="pointer-events-auto flex max-w-full items-center gap-3 rounded-full bg-paper/92 py-1.5 pr-1.5 pl-1.5 shadow-lift backdrop-blur-xl max-[420px]:gap-2"
           style={tint(buddy)}
@@ -370,6 +383,7 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
                 key={chapters[ci].id}
                 index={ci}
                 chapter={chapters[ci]}
+                previous={chapters[ci - 1]}
                 zone={zone}
                 width={width}
                 roadD={geo.roadD}
@@ -379,6 +393,9 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
                 compact={geo.compact}
               />
             ))}
+
+            {/* One sky over every island. */}
+            <Clouds width={width} height={geo.height} compact={geo.compact} />
 
             {/* The road: a sandy path, the stretch already walked marked in the buddy's colour. */}
             <svg className="pointer-events-none absolute inset-0" width={width} height={geo.height} aria-hidden>
@@ -644,6 +661,7 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
                 node={geo.nodes[selected]}
                 width={width}
                 characters={characters}
+                profileId={profileId}
                 watched={selected < current}
                 onPlay={play}
                 onClose={() => setSelected(null)}
@@ -689,6 +707,19 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
       )}
 
       {book && <StickerBook chapters={chapters} characters={characters} progress={progress} onClose={() => setBook(false)} />}
+
+      {/* The way to the whole crew, floating in the corner: this child's buddy first. */}
+      <Link
+        href="/buddies"
+        className="fixed right-4 bottom-4 z-30 inline-flex h-14 items-center gap-3 rounded-full bg-paper/95 pr-5 pl-2 shadow-lift ring-1 ring-line backdrop-blur-md transition-transform hover:-translate-y-0.5 max-[640px]:right-3 max-[640px]:bottom-[max(0.75rem,env(safe-area-inset-bottom))] max-[640px]:h-12 max-[640px]:pr-4"
+      >
+        <span className="flex -space-x-3">
+          {[buddy, ...characters.filter((c) => c.id !== buddy.id)].slice(0, 3).map((character) => (
+            <Face key={character.id} character={character} className="size-10 ring-2 ring-paper max-[640px]:size-8" />
+          ))}
+        </span>
+        <span className="font-display text-[1.1rem] font-medium max-[640px]:text-[1rem]">The crew</span>
+      </Link>
     </main>
   );
 }
@@ -700,6 +731,7 @@ function StopCard({
   node,
   width,
   characters,
+  profileId,
   watched,
   onPlay,
   onClose,
@@ -708,6 +740,8 @@ function StopCard({
   node: Placed;
   width: number;
   characters: CharacterData[];
+  /** Whose favourites the heart saves to; "guest" before anyone is picked, when there is no heart. */
+  profileId: string;
   watched: boolean;
   onPlay: (stop: ResolvedStop) => void;
   onClose: () => void;
@@ -715,6 +749,9 @@ function StopCard({
   const stop = item.stop;
   const host = characters.find((c) => c.id === stop.host) ?? characters[0];
   const cardWidth = Math.min(300, width - 16);
+  const favourites = parseFavourites(useSyncExternalStore(subscribeDevice, () => readFavouritesRaw(profileId), () => "[]"));
+  const loved = favourites.includes(stop.showId);
+  const canLove = profileId !== "guest";
   const left = Math.max(8, Math.min(width - cardWidth - 8, node.x - cardWidth / 2));
 
   return (
@@ -738,14 +775,27 @@ function StopCard({
           <p className="mt-1 text-[0.85rem] font-semibold text-ink-soft">
             {stop.label} · {stop.duration}
           </p>
-          <button
-            type="button"
-            onClick={() => onPlay(stop)}
-            className="mt-3 inline-flex h-13 w-full cursor-pointer items-center justify-center gap-2.5 rounded-full bg-(--c) text-[1.02rem] font-bold text-(--c-on) transition-transform active:scale-[0.98]"
-          >
-            <Icon name={watched ? "replay" : "play"} className="size-5" />
-            {watched ? "Watch again" : "Play"}
-          </button>
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={() => onPlay(stop)}
+              className="inline-flex h-13 flex-1 cursor-pointer items-center justify-center gap-2.5 rounded-full bg-(--c) text-[1.02rem] font-bold text-(--c-on) transition-transform active:scale-[0.98]"
+            >
+              <Icon name={watched ? "replay" : "play"} className="size-5" />
+              {watched ? "Watch again" : "Play"}
+            </button>
+            {canLove && (
+              <button
+                type="button"
+                onClick={() => toggleFavourite(profileId, stop.showId)}
+                aria-pressed={loved}
+                aria-label={loved ? `Remove ${stop.showTitle} from favourites` : `Add ${stop.showTitle} to favourites`}
+                className="grid size-13 flex-none cursor-pointer place-items-center rounded-full bg-mist transition-transform active:scale-90"
+              >
+                <Icon name={loved ? "heart-filled" : "heart"} className={cx("size-6", loved ? "text-berry" : "text-ink-soft")} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </>

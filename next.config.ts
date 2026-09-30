@@ -12,12 +12,19 @@ const nextConfig: NextConfig = {
     "/profiles": ["./data/**"],
     "/profiles/new": ["./data/**"],
     "/buddy": ["./data/**"],
-    "/watch": ["./data/**"],
+    "/buddies": ["./data/**"],
     "/watch/[id]": ["./data/**"],
     "/trail": ["./data/**"],
-    "/friends": ["./data/**"],
-    "/friends/[id]": ["./data/**"],
     "/parents": ["./data/**"],
+  },
+  // The trail is home now. The old home and friends pages are gone; their
+  // addresses (bookmarks, old links) land on the trail.
+  redirects() {
+    return [
+      { source: "/watch", destination: "/trail", permanent: false },
+      { source: "/friends", destination: "/trail", permanent: false },
+      { source: "/friends/:id", destination: "/trail", permanent: false },
+    ];
   },
 };
 

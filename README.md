@@ -21,23 +21,20 @@ Open [http://localhost:3000](http://localhost:3000).
 |---|---|
 | `/` | One-screen landing: the logo, the crew, and the way in |
 | `/profiles` | "Who's watching?" Each child picks their own picture, then Watch. With no kids yet it goes to `/profiles/new` |
-| `/profiles/new` | "Add your kids": a photo from the device, a name and a birth month for each child |
-| `/buddy` | "Choose your buddy": one friend big on their own colour with their name huge behind, the others small either side; arrows, swipe or arrow keys move between them. Tap the big one to make them jump; "Select" makes them this child's buddy, then a short load, a "You chose Kai!" hello and a full-screen "Meet Kai" (who they are, what they do, what they will help with) lead to "Start journey" and the trail, which they guide. They also colour the sidebar |
-| `/watch` | Home: featured banner, the trail card, friends, keep watching, one row per friend's world. Works without anyone picked; once a child is watching, it only shows shows for their age |
-| `/watch/[id]` | A show: banner, who's in it, episodes by season, the player |
-| `/trail` | The game: stops on a winding road through seven islands. The child's buddy guides them, the next stop unlocks when one is watched, and each island ends in a treasure chest holding a sticker |
-| `/friends`, `/friends/[id]` | The crew, and each friend's world. Tap the character and it talks |
-| `/parents` | Grown-ups area: the kids and their levels, break timer, reset |
+| `/profiles/new` | "Add your kids": a photo from the device, a name and a birth month for each child. The birthday sets their level (Sprouts 4 and under, Explorers 5 to 8, Voyagers 9 to 12); there is no picker, and it moves up by itself as they grow |
+| `/buddy` | "Choose your buddy": one friend big on their own colour with their name huge behind, the others small either side; arrows, swipe or arrow keys move between them. Tap the big one to make them jump; "Select" makes them this child's buddy, then, after a short load, they perform: they bound in and introduce themselves out loud, one line at a time with a move for each (a different voice per friend, with sound on/off, again and skip), and "Start journey" goes onto the trail, which they guide |
+| `/trail` | Home, and the game: stops on a winding road through seven islands, only shows for the child's age. Their buddy hosts the first island and guides them all the way; the next stop unlocks when one is watched, each island ends in a treasure chest holding a sticker, and a heart on each stop saves it to their favourites. The islands melt into one another rather than meeting at an edge, and the map is always gently moving: rippling water, surf washing the sand, lapping shorelines, swaying trees, rocking boats, ringing ponds and clouds drifting over it all |
+| `/buddies` | The crew: every buddy as a full-length portrait, with a search that knows what they love. Tap one and they fill the screen and talk (tap again for more), with their story, their shows and "Choose" to make them the child's buddy. Opened from the buddy switcher |
+| `/watch/[id]` | A show, opened from favourites: banner, who's in it, episodes by season, the player |
+| `/parents` | Grown-ups area: each kid's level and progress, break timer, buddy voices, reset |
 
-Inside the app, wide screens get a sidebar (the pages, every friend's world, the child watching and their buddy) and a search bar; narrower ones a top bar, and phones a bottom tab bar. Pages load behind the ShowTiva Kids logo.
-
-Search opens **Discover** from any page: a shuffled mix of episodes, movies, minis and friends. Tapping a card plays it in place, with "Up next" beside it.
+Inside the app there is no bar and no menu, just buttons floating over the top corners: Favourites on the left, and on the right the child watching (switch kids, "Who's watching?", Grown-ups) and their buddy (swap to another friend on the spot, or meet them all on the stage). The old `/watch` and `/friends` addresses redirect to the trail. Pages load behind the ShowTiva Kids logo.
 
 Each child has their own id: their own shows by age, favourites, trail progress and buddy. The grown-ups area is open for now; it gets a lock when there are accounts.
 
 ## Content
 
-`data/catalog.json` holds the characters, shows, episodes, curated rows and the trail. It is read on every request, so edits appear without a rebuild, and it is validated on read, so a bad edit names the broken path rather than breaking a page.
+`data/catalog.json` holds the characters (including each one's spoken introduction and voice), shows, episodes, curated rows and the trail. It is read on every request, so edits appear without a rebuild, and it is validated on read, so a bad edit names the broken path rather than breaking a page.
 
 Show artwork is generated from the characters (`app/_components/ShowArt.tsx`), not stored. When real key art exists, that component is the one to replace.
 

@@ -3,10 +3,10 @@
 // "Add your kids": the first thing a family does after the landing page.
 //
 // A grown-up adds each child: a photo from the device (camera or library), a
-// first name, and a birthday. The birthday suggests what the child may watch,
-// and the grown-up can pick differently. Several children can be added in
-// one sitting; "Done" takes the family to "Who's watching?", or, with one
-// child, straight on to choosing their buddy.
+// first name, and the month and year they were born. The birthday sets which
+// shows they see; there is no picker for it, and it moves up by itself as they
+// grow. Several children can be added in one sitting; "Done" takes the family
+// to "Who's watching?", or, with one child, straight on to choosing a buddy.
 //
 // Only month and year of birth are asked for: enough to know an age, and no
 // more than the app needs. Photos are shrunk to a small square on the device
@@ -19,7 +19,6 @@ import { useRouter } from "next/navigation";
 import { cx } from "@/lib/cx";
 import { readPhotoRaw, removePhoto, savePhoto, subscribeDevice } from "@/lib/device";
 import {
-  AGE_BANDS,
   MAX_NAME_LENGTH,
   MAX_PROFILES,
   ageBand,
@@ -27,7 +26,6 @@ import {
   bandForAge,
   newProfileId,
   writeProfiles,
-  type AgeBandId,
   type Profile,
   type ProfileState,
 } from "@/lib/profiles";
@@ -78,8 +76,6 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
   const [name, setName] = useState(editing?.name ?? "");
   const [birthYear, setBirthYear] = useState(editing?.birth?.slice(0, 4) ?? "");
   const [birthMonth, setBirthMonth] = useState(editing?.birth?.slice(5, 7) ?? "");
-  const [band, setBand] = useState<AgeBandId | null>(editing?.age ?? null);
-  const [bandTouched, setBandTouched] = useState(Boolean(editing));
   const [photo, setPhoto] = useState<string | null | undefined>(undefined); // undefined: unchanged
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [tried, setTried] = useState(false);
@@ -92,8 +88,7 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
 
   const birth = birthYear && birthMonth ? `${birthYear}-${birthMonth}` : null;
   const age = birth && now !== null ? ageFromBirth(birth, new Date(now)) : null;
-  const suggested = age !== null ? bandForAge(age) : null;
-  const chosenBand = bandTouched ? band : (suggested ?? band);
+  const level = age !== null ? ageBand(bandForAge(age)) : null;
   const trimmed = name.trim();
   const full = !editing && kids.length >= MAX_PROFILES;
 
@@ -109,11 +104,11 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
 
   const save = () => {
     setTried(true);
-    if (!trimmed || !birth || !chosenBand) return;
+    if (!trimmed || !birth || age === null) return;
 
     const profile: Profile = editing
-      ? { ...editing, name: trimmed.slice(0, MAX_NAME_LENGTH), birth, age: chosenBand }
-      : { id: draftId, name: trimmed.slice(0, MAX_NAME_LENGTH), age: chosenBand, birth };
+      ? { ...editing, name: trimmed.slice(0, MAX_NAME_LENGTH), birth, age: bandForAge(age) }
+      : { id: draftId, name: trimmed.slice(0, MAX_NAME_LENGTH), age: bandForAge(age), birth };
 
     if (photo === null) removePhoto(profile.id);
     else if (photo && !savePhoto(profile.id, photo)) {
@@ -135,8 +130,6 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
     setName("");
     setBirthYear("");
     setBirthMonth("");
-    setBand(null);
-    setBandTouched(false);
     setPhoto(undefined);
     setTried(false);
     router.refresh();
@@ -155,118 +148,101 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
   if (now === null) return <main className="min-h-dvh bg-canvas" />;
 
   const years = Array.from({ length: 15 }, (_, i) => String(new Date(now).getFullYear() - i));
-  const field = "h-14 w-full rounded-2xl border-2 bg-canvas px-4 text-[1.05rem] font-semibold text-ink outline-none transition-colors focus:border-ink";
+  const field = "h-12 w-full rounded-xl border bg-canvas px-4 text-[1rem] font-medium text-ink outline-none transition-colors focus:border-ink/50";
 
   return (
-    <main className="min-h-dvh bg-canvas pb-20">
-      <header className="mx-auto flex max-w-[1040px] items-center justify-between gap-4 px-6 pt-5 max-[640px]:px-4">
+    <main className="min-h-dvh bg-canvas pb-24 text-ink">
+      <header className="mx-auto flex max-w-[620px] items-center justify-between gap-4 px-6 pt-6 max-[640px]:px-4">
         <Link href="/" aria-label="ShowTiva Kids home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/logo.svg" alt="ShowTiva Kids" className="h-10 w-auto" />
+          <img src="/brand/logo.svg" alt="ShowTiva Kids" className="h-9 w-auto" />
         </Link>
         {editing ? (
-          <Link href="/parents" className="inline-flex h-11 items-center rounded-full px-4 text-[0.95rem] font-semibold text-ink-soft hover:bg-mist hover:text-ink">
+          <Link href="/parents" className="text-[0.95rem] font-semibold text-ink-soft transition-colors hover:text-ink">
             Cancel
           </Link>
         ) : (
           kids.length > 0 && (
-            <button
-              type="button"
-              onClick={finish}
-              className="inline-flex h-11 cursor-pointer items-center gap-1.5 rounded-full bg-ink px-5 text-[0.95rem] font-semibold text-white"
-            >
+            <button type="button" onClick={finish} className="cursor-pointer text-[0.95rem] font-semibold text-ink-soft transition-colors hover:text-ink">
               Done
-              <Icon name="chevron-right" className="size-4" />
             </button>
           )
         )}
       </header>
 
-      <div className="mx-auto grid max-w-[1040px] grid-cols-[minmax(0,1fr)_minmax(0,460px)] items-start gap-[clamp(2rem,6vw,5rem)] px-6 pt-[clamp(2rem,6vh,4rem)] max-[900px]:grid-cols-1 max-[640px]:px-4">
-        {/* ---- what this is, and who is in so far ---- */}
-        <section>
-          <h1 className="font-display text-[clamp(2.2rem,4.8vw,3.4rem)] leading-[1.02] font-medium text-balance">
-            {editing ? `Edit ${editing.name}'s profile` : "Add your kids"}
-          </h1>
-          <p className="mt-4 max-w-[30rem] text-[1.05rem] leading-relaxed text-ink-soft">
-            {editing
-              ? "Change their photo, name or birthday, or what they can watch."
-              : "Give each child their own profile with a photo, their name and their birthday. Their age decides which shows they see, and you can change that any time."}
-          </p>
+      <div className="mx-auto max-w-[620px] px-6 max-[640px]:px-4">
+        <h1 className="mt-12 font-display text-[clamp(2.1rem,4.4vw,2.8rem)] leading-none font-medium max-[640px]:mt-9">
+          {editing ? `Edit ${editing.name}` : kids.length > 0 ? "Add another child" : "Add your first child"}
+        </h1>
+        <p className="mt-3 max-w-[32rem] text-[1.02rem] leading-relaxed text-ink-soft">
+          {editing
+            ? "Change their photo, name or birthday."
+            : "Each child gets their own profile, trail and buddy. Their birthday decides which shows they see."}
+        </p>
 
-          {!editing && kids.length > 0 && (
-            <div className="mt-8">
-              <p className="text-[0.78rem] font-bold tracking-[0.14em] text-ink-faint uppercase">Your kids</p>
-              <ul className="mt-3 flex flex-col gap-2">
-                {kids.map((kid) => (
-                  <li key={kid.id} className={cx("flex items-center gap-3 rounded-2xl bg-paper p-2.5 pr-4 ring-1 ring-line", justAdded?.id === kid.id && "animate-pop")}>
-                    <KidAvatar profile={kid} className="size-12" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-display text-[1.15rem] leading-tight font-medium">{kid.name}</span>
-                      <span className="block text-[0.85rem] font-semibold text-ink-faint">
-                        {kid.birth ? `${ageFromBirth(kid.birth, new Date(now))} years old · ` : ""}
-                        {ageBand(kid.age).label}
-                      </span>
-                    </span>
-                    {justAdded?.id === kid.id && (
-                      <span className="flex items-center gap-1 text-[0.85rem] font-bold text-teal">
-                        <Icon name="check" className="size-4" />
-                        Added
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <p className="mt-8 flex max-w-[30rem] items-start gap-2.5 text-[0.9rem] leading-relaxed text-ink-soft">
-            <Icon name="shield" className="mt-0.5 size-5 flex-none text-teal" />
-            Photos and details stay on this device. Nothing is uploaded, and we only ask for the month and year they were born.
-          </p>
-        </section>
-
-        {/* ---- the form ---- */}
-        <section className="rounded-stage bg-paper p-[clamp(1.25rem,3vw,2rem)] ring-1 ring-line">
-          {full ? (
-            <div className="py-6 text-center">
-              <p className="font-display text-[1.4rem] font-medium">That&apos;s a full house!</p>
-              <p className="mt-2 text-[0.98rem] text-ink-soft">ShowTiva Kids has room for {MAX_PROFILES} kids on one device.</p>
-            </div>
-          ) : (
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                save();
-              }}
-              noValidate
-            >
-              {justAdded && !editing && (
-                <p className="mb-6 flex animate-fade-up items-center gap-3 rounded-2xl bg-[#d8f6ee] p-3 text-[0.95rem] font-semibold text-[#0a7d6b]">
-                  <KidAvatar profile={justAdded} className="size-10" />
-                  {justAdded.name} is all set. Add another child, or tap Done.
-                </p>
-              )}
-
-              {/* Photo */}
-              <div className="flex flex-col items-center">
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className="group relative cursor-pointer rounded-full outline-offset-4"
-                  aria-label={shownPhoto ? "Change photo" : "Add a photo"}
-                >
-                  {shownPhoto || trimmed ? (
-                    <KidAvatar profile={{ id: draftId, name: trimmed || "?" }} preview={shownPhoto} className="size-[136px] ring-4 ring-mist" />
-                  ) : (
-                    <span className="grid size-[136px] place-items-center rounded-full border-[3px] border-dashed border-ink/20 bg-canvas text-ink-soft transition-colors group-hover:border-ink/40 group-hover:text-ink">
-                      <CameraIcon className="size-11" />
+        {/* Who is in so far. */}
+        {!editing && kids.length > 0 && (
+          <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-4" aria-label="Added so far">
+            {kids.map((kid) => (
+              <li key={kid.id} className={cx("flex w-16 flex-col items-center gap-1.5 text-center", justAdded?.id === kid.id && "animate-pop")}>
+                <span className="relative">
+                  <KidAvatar profile={kid} className="size-14" />
+                  {justAdded?.id === kid.id && (
+                    <span className="absolute -right-1 -bottom-1 grid size-6 place-items-center rounded-full bg-ink text-white ring-2 ring-canvas">
+                      <Icon name="check" className="size-3.5" />
                     </span>
                   )}
-                  <span className="absolute right-1 bottom-1 grid size-10 place-items-center rounded-full bg-ink text-white ring-4 ring-paper">
-                    <CameraIcon className="size-5" />
+                </span>
+                <span className="w-full truncate text-[0.88rem] font-semibold">{kid.name}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {full ? (
+          <p className="mt-10 rounded-2xl border border-line bg-paper p-6 text-[1rem] text-ink-soft">
+            That&apos;s everyone this device has room for: {MAX_PROFILES} kids.{" "}
+            <button type="button" onClick={finish} className="cursor-pointer font-semibold text-ink underline underline-offset-4">
+              Carry on
+            </button>
+          </p>
+        ) : (
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              save();
+            }}
+            noValidate
+            className="mt-8"
+          >
+            <div className="rounded-2xl border border-line bg-paper">
+              <Row label="Photo">
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    aria-label={shownPhoto ? "Change photo" : "Choose a photo"}
+                    className="flex-none cursor-pointer rounded-full outline-offset-4"
+                  >
+                    {shownPhoto || trimmed ? (
+                      <KidAvatar profile={{ id: draftId, name: trimmed || "?" }} preview={shownPhoto} className="size-16" />
+                    ) : (
+                      <span className="grid size-16 place-items-center rounded-full bg-mist text-ink-soft">
+                        <CameraIcon className="size-7" />
+                      </span>
+                    )}
+                  </button>
+                  <span className="flex flex-wrap gap-x-4 gap-y-1 text-[0.92rem] font-semibold">
+                    <button type="button" onClick={() => fileRef.current?.click()} className="cursor-pointer text-ink underline decoration-ink/25 underline-offset-4 hover:decoration-ink">
+                      {shownPhoto ? "Change photo" : "Choose a photo"}
+                    </button>
+                    {shownPhoto && (
+                      <button type="button" onClick={() => setPhoto(null)} className="cursor-pointer text-ink-soft transition-colors hover:text-berry">
+                        Remove
+                      </button>
+                    )}
                   </span>
-                </button>
+                </div>
                 <input
                   ref={fileRef}
                   type="file"
@@ -278,46 +254,27 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
                     event.target.value = "";
                   }}
                 />
-                <div className="mt-3 flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    className="h-10 cursor-pointer rounded-full px-4 text-[0.9rem] font-bold text-ink transition-colors hover:bg-mist"
-                  >
-                    {shownPhoto ? "Change photo" : "Add a photo"}
-                  </button>
-                  {shownPhoto && (
-                    <button
-                      type="button"
-                      onClick={() => setPhoto(null)}
-                      className="h-10 cursor-pointer rounded-full px-4 text-[0.9rem] font-bold text-ink-faint transition-colors hover:bg-mist hover:text-berry"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-                {photoError && <p className="mt-1 text-center text-[0.85rem] font-semibold text-berry">{photoError}</p>}
-              </div>
+                <p className={cx("mt-2 text-[0.85rem]", photoError ? "font-semibold text-berry" : "text-ink-faint")}>
+                  {photoError ?? "Optional. Until there is one, we show their first initial."}
+                </p>
+              </Row>
 
-              {/* Name */}
-              <label className="mt-6 block">
-                <span className="text-[0.9rem] font-bold text-ink">First name</span>
+              <Row label="First name" htmlFor="kid-name">
                 <input
+                  id="kid-name"
                   ref={nameRef}
                   value={name}
                   maxLength={MAX_NAME_LENGTH}
                   onChange={(event) => setName(event.target.value)}
-                  placeholder="Their first name or a nickname"
+                  placeholder="First name or nickname"
                   autoComplete="off"
-                  className={cx(field, "mt-2", tried && !trimmed ? "border-berry" : "border-line")}
+                  className={cx(field, tried && !trimmed ? "border-berry" : "border-line")}
                 />
-                {tried && !trimmed && <span className="mt-1.5 block text-[0.85rem] font-semibold text-berry">What should we call them?</span>}
-              </label>
+                {tried && !trimmed && <p className="mt-1.5 text-[0.85rem] font-semibold text-berry">What should we call them?</p>}
+              </Row>
 
-              {/* Birthday */}
-              <fieldset className="mt-5">
-                <legend className="text-[0.9rem] font-bold text-ink">Birthday</legend>
-                <div className="mt-2 grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-2.5">
+              <Row label="Born">
+                <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-2">
                   <select
                     value={birthMonth}
                     onChange={(event) => setBirthMonth(event.target.value)}
@@ -345,84 +302,69 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
                     ))}
                   </select>
                 </div>
-                <p className={cx("mt-2 text-[0.88rem] font-semibold", tried && !birth ? "text-berry" : "text-ink-faint")}>
+                <p className={cx("mt-2 text-[0.85rem]", tried && !birth ? "font-semibold text-berry" : "text-ink-faint")}>
                   {age !== null
                     ? age < 2
-                      ? "ShowTiva Kids is made for ages 2 and up, so we'll keep things extra gentle."
+                      ? "Under 2. ShowTiva Kids is made for 2 and up, so they'll get the gentlest shows."
                       : age > 12
-                        ? `${age} years old. ShowTiva Kids is made for up to 12, so they'll see everything.`
-                        : `${age} years old`
+                        ? `${age}. ShowTiva Kids is made for up to 12, so they'll see everything.`
+                        : `${age} years old.`
                     : tried
-                      ? "We use their age to choose what they can watch."
-                      : "Just the month and year."}
+                      ? "We need this to know which shows are right for them."
+                      : "The month and year is enough."}
                 </p>
-              </fieldset>
+              </Row>
 
-              {/* What they can watch */}
-              <fieldset className="mt-5">
-                <legend className="text-[0.9rem] font-bold text-ink">What they can watch</legend>
-                <div className="mt-2 flex flex-col gap-2" role="radiogroup">
-                  {AGE_BANDS.map((option) => {
-                    const picked = chosenBand === option.id;
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={picked}
-                        onClick={() => {
-                          setBand(option.id);
-                          setBandTouched(true);
-                        }}
-                        className={cx(
-                          "flex w-full cursor-pointer items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-colors",
-                          picked ? "border-ink bg-canvas" : "border-line hover:border-ink/25",
-                        )}
-                      >
-                        <span className={cx("grid size-6 flex-none place-items-center rounded-full border-2", picked ? "border-ink bg-ink text-white" : "border-ink/20")}>
-                          {picked && <Icon name="check" className="size-3.5" />}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="flex flex-wrap items-center gap-x-2">
-                            <strong className="text-[0.98rem] font-bold">{option.label}</strong>
-                            <span className="text-[0.85rem] font-semibold text-ink-faint">{option.range}</span>
-                            {suggested === option.id && (
-                              <span className="rounded-full bg-[#d8f6ee] px-2 py-0.5 text-[0.7rem] font-bold text-[#0a7d6b]">Suggested</span>
-                            )}
-                          </span>
-                          <span className="mt-0.5 block text-[0.85rem] leading-snug text-ink-soft">{option.blurb}</span>
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </fieldset>
-
-              <button
-                type="submit"
-                className="mt-7 inline-flex h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-ink text-[1.02rem] font-semibold text-white transition-transform active:scale-[0.98]"
-              >
-                {editing ? "Save changes" : (
+              <Row label="Shows">
+                {level ? (
                   <>
-                    <Icon name="plus" className="size-5" />
-                    {trimmed ? `Add ${trimmed}` : "Add child"}
+                    <p className="pt-3 text-[1rem] max-[560px]:pt-0">
+                      <span className="font-semibold">{level.label}</span>
+                      <span className="text-ink-soft"> · {level.range}</span>
+                    </p>
+                    <p className="mt-1 text-[0.85rem] leading-relaxed text-ink-faint">
+                      {level.blurb} Set by their age; it moves up on its own as they grow.
+                    </p>
                   </>
+                ) : (
+                  <p className="pt-3 text-[0.95rem] text-ink-faint max-[560px]:pt-0">Worked out from their birthday.</p>
                 )}
+              </Row>
+            </div>
+
+            <button
+              type="submit"
+              className="mt-6 inline-flex h-13 w-full cursor-pointer items-center justify-center rounded-xl bg-ink text-[1.02rem] font-semibold text-white transition-transform active:scale-[0.99]"
+            >
+              {editing ? "Save changes" : trimmed ? `Add ${trimmed}` : "Add child"}
+            </button>
+            {!editing && kids.length > 0 && (
+              <button
+                type="button"
+                onClick={finish}
+                className="mt-3 h-13 w-full cursor-pointer rounded-xl border border-line bg-paper text-[1rem] font-semibold transition-colors hover:border-ink/30"
+              >
+                That&apos;s everyone
               </button>
-              {!editing && kids.length > 0 && (
-                <button
-                  type="button"
-                  onClick={finish}
-                  className="mt-2 h-12 w-full cursor-pointer rounded-full text-[0.95rem] font-bold text-ink-soft transition-colors hover:bg-mist hover:text-ink"
-                >
-                  I&apos;m done adding kids
-                </button>
-              )}
-            </form>
-          )}
-        </section>
+            )}
+            <p className="mt-6 text-center text-[0.85rem] text-ink-faint">Photos and birthdays stay on this device. Nothing is uploaded.</p>
+          </form>
+        )}
       </div>
     </main>
+  );
+}
+
+/** One line of the form: its name on the left, the control on the right (stacked on a phone). */
+function Row({ label, htmlFor, children }: { label: string; htmlFor?: string; children: React.ReactNode }) {
+  const Label = htmlFor ? "label" : "span";
+  return (
+    <div className="grid grid-cols-[8rem_minmax(0,1fr)] items-start gap-x-6 gap-y-2 border-b border-line px-5 py-5 last:border-b-0 max-[560px]:grid-cols-1 max-[560px]:px-4">
+      <Label htmlFor={htmlFor} className="pt-3 text-[0.95rem] font-semibold max-[560px]:pt-0">
+        {label}
+      </Label>
+      <div className="min-w-0">{children}</div>
+    </div>
   );
 }
 

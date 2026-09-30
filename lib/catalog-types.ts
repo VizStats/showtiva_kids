@@ -24,6 +24,22 @@ export const MOTIFS = [
 ] as const;
 export type Motif = (typeof MOTIFS)[number];
 
+/** How a character moves while saying one line of their introduction. */
+export const MOVES = ["wave", "jump", "spin", "dance", "think", "lean", "nod", "wobble", "dash", "sway", "breathe", "cheer"] as const;
+export type Move = (typeof MOVES)[number];
+
+/** What happens around them on that line: confetti, or their motif floating up. */
+export const EFFECTS = ["confetti", "motif"] as const;
+export type Effect = (typeof EFFECTS)[number];
+
+/** One line of a character's introduction, said aloud with a move. */
+export interface IntroBeat {
+  /** `{kid}` becomes the child's name. */
+  say: string;
+  move: Move;
+  fx?: Effect;
+}
+
 /**
  * Where the face sits inside the character artwork, so any circle can show
  * just the face (avatars, the player's scrubber, row headings) without a
@@ -49,8 +65,18 @@ export interface Character {
   /** First person, the way the character would say it. */
   bio: string;
   likes: string[];
-  /** What they help a child do, for "Meet your buddy": "Be brave and try new things". */
-  helps: string[];
+  /**
+   * How they introduce themselves after a child picks them: line by line,
+   * spoken aloud, each with a move. Sells who they are and what they will
+   * help with, without a page of text.
+   */
+  intro: IntroBeat[];
+  /**
+   * Their speaking voice for the browser's speech: the voices to look for,
+   * best first (a device's kid voices lead), and a pitch and speed that keep
+   * each friend sounding young and like nobody else.
+   */
+  voice: { pitch: number; rate: number; prefer: string[] };
   /** Said in a speech bubble when the character is tapped. */
   quotes: string[];
   /** Signature colour, its pale tint and its deep shade. */
