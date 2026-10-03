@@ -1,15 +1,22 @@
-// How far someone has watched, remembered on this device.
+// How far each child has watched, remembered on this device.
 //
 // Same shape as the main ShowTiva app's watch progress, so both move to one
-// API unchanged once accounts exist: one localStorage entry per show, holding
+// API once accounts exist: one localStorage entry per child and show, holding
 // the last thing played in it ("feature" for a movie, "s1e3" for an episode)
-// and a position for each thing played.
+// and a position for each thing played. Kept per child, like their favourites
+// and trail, so a sibling's half-watched episode is not someone else's
+// "Resume".
 
 export interface WatchPosition {
-  /** Seconds watched. */
+  /** Seconds in: where playback is. */
   t: number;
   /** Length in seconds. */
   d: number;
+  /**
+   * Seconds actually played, across every sitting. Skips and drags along the
+   * scrubber add nothing, so this, not `t`, says whether something was watched.
+   */
+  w?: number;
 }
 
 export interface ShowProgress {
@@ -36,10 +43,13 @@ export function parsePick(key: string): Pick | null {
   return m ? { season: Number(m[1]), episode: Number(m[2]) } : null;
 }
 
+/** "guest" when nobody has picked a profile. Profile ids never hold a colon. */
+const storageKey = (profileId: string, showId: string) => `${PREFIX}${profileId}:${showId}`;
+
 /** The raw stored string: a stable snapshot for useSyncExternalStore. */
-export function readRaw(showId: string): string | null {
+export function readRaw(profileId: string, showId: string): string | null {
   try {
-    return window.localStorage.getItem(PREFIX + showId);
+    return window.localStorage.getItem(storageKey(profileId, showId));
   } catch {
     return null;
   }
@@ -55,29 +65,50 @@ export function parseProgress(raw: string | null): ShowProgress | null {
   }
 }
 
-export function saveProgress(showId: string, key: string, t: number, d: number): void {
-  if (!Number.isFinite(t) || !Number.isFinite(d) || d <= 0) return;
+/**
+ * Records where playback is, adding `played` (seconds actually played since
+ * the last save) to the item's running total. Returns the saved position, or
+ * null when nothing could be saved.
+ */
+export function saveProgress(
+  profileId: string,
+  showId: string,
+  key: string,
+  t: number,
+  d: number,
+  played = 0,
+): WatchPosition | null {
+  if (!Number.isFinite(t) || !Number.isFinite(d) || d <= 0) return null;
   try {
-    const current = parseProgress(readRaw(showId)) ?? { last: key, items: {}, updatedAt: 0 };
+    const current = parseProgress(readRaw(profileId, showId)) ?? { last: key, items: {}, updatedAt: 0 };
+    const before = current.items[key]?.w ?? 0;
+    const position: WatchPosition = {
+      t: Math.max(0, Math.min(t, d)),
+      d,
+      w: Math.min(d, before + (Number.isFinite(played) ? Math.max(0, played) : 0)),
+    };
     const next: ShowProgress = {
       last: key,
-      items: { ...current.items, [key]: { t: Math.max(0, Math.min(t, d)), d } },
+      items: { ...current.items, [key]: position },
       updatedAt: Date.now(),
     };
-    window.localStorage.setItem(PREFIX + showId, JSON.stringify(next));
+    window.localStorage.setItem(storageKey(profileId, showId), JSON.stringify(next));
     window.dispatchEvent(new Event(EVENT));
+    return position;
   } catch {
     // Storage full or blocked: progress simply is not remembered.
+    return null;
   }
 }
 
-/** Every show with progress on this device, most recent first. */
-export function readAllRaw(): string {
+/** Every show this child has progress in, most recent first. */
+export function readAllRaw(profileId: string): string {
   try {
+    const prefix = `${PREFIX}${profileId}:`;
     const entries: string[] = [];
     for (let i = 0; i < window.localStorage.length; i += 1) {
       const key = window.localStorage.key(i);
-      if (key?.startsWith(PREFIX)) entries.push(`${key.slice(PREFIX.length)}\u0000${window.localStorage.getItem(key)}`);
+      if (key?.startsWith(prefix)) entries.push(`${key.slice(prefix.length)}\u0000${window.localStorage.getItem(key)}`);
     }
     return entries.sort().join("\u0001");
   } catch {

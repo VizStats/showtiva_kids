@@ -16,15 +16,19 @@ export default function SiteFooter() {
         <Link href="/parents" className="hover:text-ink">
           Grown-ups
         </Link>
-        <a href={`${SHOWTIVA_URL}/privacy`} className="hover:text-ink">
-          Privacy
-        </a>
-        <a href={`${SHOWTIVA_URL}/terms`} className="hover:text-ink">
-          Terms
-        </a>
-        <a href={SHOWTIVA_URL} className="hover:text-ink">
-          ShowTiva
-        </a>
+        {SHOWTIVA_URL && (
+          <>
+            <a href={`${SHOWTIVA_URL}/privacy`} className="hover:text-ink">
+              Privacy
+            </a>
+            <a href={`${SHOWTIVA_URL}/terms`} className="hover:text-ink">
+              Terms
+            </a>
+            <a href={SHOWTIVA_URL} className="hover:text-ink">
+              ShowTiva
+            </a>
+          </>
+        )}
       </nav>
     </footer>
   );

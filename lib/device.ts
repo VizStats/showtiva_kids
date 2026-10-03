@@ -1,5 +1,6 @@
-// Small client-side stores kept on this device: favourites per profile, the
-// break timer, and whether a grown-up has recently passed the gate.
+// Small client-side stores kept on this device: favourites, trail and photo
+// per profile, the break timer, buddy voices, and whether a grown-up has
+// recently passed the gate.
 //
 // Each exposes a raw string snapshot for useSyncExternalStore, so an
 // unchanged value never re-renders, plus a subscribe that hears this tab's
@@ -180,7 +181,46 @@ export function setVoiceOn(on: boolean): void {
   write("local", VOICE_KEY, on ? null : "off");
 }
 
+/* ----------------------------------------------------------- grown-ups -- */
+
+const GATE_KEY = "stk-gate";
+/** A passed gate holds for a few minutes, so a grown-up changing several
+ *  settings is not asked a sum between each one. Kept per tab. */
+const GATE_HOLD_MS = 5 * 60_000;
+
+export function readGateRaw(): string {
+  return read("session", GATE_KEY) ?? "";
+}
+
+export function gateOpen(raw: string, now = Date.now()): boolean {
+  const until = Number(raw);
+  return Number.isFinite(until) && until > now;
+}
+
+export function openGate(): void {
+  write("session", GATE_KEY, String(Date.now() + GATE_HOLD_MS));
+}
+
+/** Locks again straight away, so a child who follows a grown-up out is asked afresh. */
+export function closeGate(): void {
+  write("session", GATE_KEY, null);
+}
+
 /* --------------------------------------------------------------- reset -- */
+
+/** Forgets one child: everything kept under their id (photo, favourites,
+ *  trail, where they left off in each show). */
+export function forgetProfile(profileId: string): void {
+  try {
+    for (const key of Object.keys(window.localStorage)) {
+      if (key.startsWith("stk-") && key.split(":")[1] === profileId) window.localStorage.removeItem(key);
+    }
+  } catch {
+    // Nothing to forget.
+  }
+  window.dispatchEvent(new Event(EVENT));
+  window.dispatchEvent(new Event("stk-progress"));
+}
 
 /** Forgets everything this app stored on the device except the profiles
  *  cookie, which the caller clears. */

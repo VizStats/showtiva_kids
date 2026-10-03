@@ -2,8 +2,8 @@
 
 // The break timer's other half: when the time a grown-up set runs out, the
 // whole app gives way to a friendly "time for a break" screen until a
-// grown-up lets it carry on. Mounted once in the root layout so it covers every
-// page, including the player, whose video it pauses.
+// grown-up, past the gate, lets it carry on. Mounted once in the root layout so
+// it covers every page, including the player, whose video it pauses.
 //
 // Not shown on the landing page (a parent reading about the app should not be
 // locked out of reading about it) or in the grown-ups area itself.
@@ -11,10 +11,11 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 
-import { parseTimer, readTimerRaw, setTimer, subscribeDevice } from "@/lib/device";
+import { closeGate, gateOpen, parseTimer, readGateRaw, readTimerRaw, setTimer, subscribeDevice } from "@/lib/device";
 import { useClock } from "@/lib/use-client";
 
 import Icon from "./Icon";
+import ParentGate from "./ParentGate";
 
 const COCO = { name: "Coco", image: "/characters/coco.svg", aspect: 0.5485 };
 
@@ -104,6 +105,31 @@ export default function BreakTimer() {
 }
 
 function GrownUpChoice({ minutes, onDone }: { minutes: number; onDone: () => void }) {
+  // The choices show only while the gate is open, read from the gate itself
+  // rather than remembered here: a pass expires, and choices left on screen
+  // past that must not stay usable by whoever finds them.
+  const gateRaw = useSyncExternalStore(subscribeDevice, readGateRaw, () => "");
+  const now = useClock(1000);
+
+  if (now === null || !gateOpen(gateRaw, now)) {
+    return <ParentGate reason="Unlock ShowTiva Kids" onPass={() => undefined} onCancel={onDone} />;
+  }
+
+  // Whatever the grown-up picks, the gate locks again behind them, so the
+  // child cannot walk on into the grown-ups area and turn the timer off.
+  const done = () => {
+    closeGate();
+    onDone();
+  };
+
+  // Checked again on the tap itself, which can land up to a second after the
+  // clock last looked. An expired pass does nothing; the gate is back a tick later.
+  const choose = (next: number | null) => {
+    if (!gateOpen(readGateRaw())) return;
+    setTimer(next);
+    done();
+  };
+
   return (
     <div className="fixed inset-0 z-[95] grid animate-fade place-items-center bg-ink/50 p-4 text-ink backdrop-blur-md">
       <div className="w-full max-w-[380px] animate-sheet rounded-panel bg-paper p-7 text-center shadow-lift">
@@ -114,10 +140,7 @@ function GrownUpChoice({ minutes, onDone }: { minutes: number; onDone: () => voi
             <button
               key={m}
               type="button"
-              onClick={() => {
-                setTimer(m);
-                onDone();
-              }}
+              onClick={() => choose(m)}
               className="h-13 cursor-pointer rounded-2xl bg-ink px-5 text-[0.98rem] font-semibold text-white transition-transform active:scale-[0.98]"
             >
               {m} more minutes
@@ -125,15 +148,12 @@ function GrownUpChoice({ minutes, onDone }: { minutes: number; onDone: () => voi
           ))}
           <button
             type="button"
-            onClick={() => {
-              setTimer(null);
-              onDone();
-            }}
+            onClick={() => choose(null)}
             className="h-13 cursor-pointer rounded-2xl bg-mist px-5 text-[0.98rem] font-semibold text-ink transition-colors hover:bg-[#ebe3d6]"
           >
             Turn the timer off
           </button>
-          <button type="button" onClick={onDone} className="mt-1 h-11 cursor-pointer text-[0.95rem] font-semibold text-ink-soft hover:text-ink">
+          <button type="button" onClick={done} className="mt-1 h-11 cursor-pointer text-[0.95rem] font-semibold text-ink-soft hover:text-ink">
             Not yet
           </button>
         </div>

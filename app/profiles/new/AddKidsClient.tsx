@@ -17,7 +17,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { cx } from "@/lib/cx";
-import { readPhotoRaw, removePhoto, savePhoto, subscribeDevice } from "@/lib/device";
+import { closeGate, gateOpen, readGateRaw, readPhotoRaw, removePhoto, savePhoto, subscribeDevice } from "@/lib/device";
 import {
   MAX_NAME_LENGTH,
   MAX_PROFILES,
@@ -33,6 +33,7 @@ import { useClock } from "@/lib/use-client";
 
 import Icon from "../../_components/Icon";
 import KidAvatar from "../../_components/KidAvatar";
+import ParentGate from "../../_components/ParentGate";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -69,7 +70,18 @@ interface AddKidsClientProps {
 
 export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
   const router = useRouter();
-  const now = useClock(60_000);
+
+  // Adding to a family that already has kids, or editing one (a new birthday
+  // is a new level), is a grown-up's job, so it sits behind the gate. The very
+  // first setup does not: whoever is setting the app up is the grown-up.
+  // Decided once, on arrival, so the gate cannot appear half way through
+  // adding a second child.
+  const [needsGate] = useState(() => state.list.length > 0);
+  // Behind the gate the clock ticks every second, so the form locks as soon
+  // as the pass expires; otherwise once a minute is enough for an age.
+  const now = useClock(needsGate ? 1000 : 60_000);
+  const gateRaw = useSyncExternalStore(subscribeDevice, readGateRaw, () => "");
+  const unlocked = !needsGate || (now !== null && gateOpen(gateRaw, now));
 
   const [kids, setKids] = useState<Profile[]>(state.list);
   const [draftId, setDraftId] = useState(() => editing?.id ?? newProfileId());
@@ -103,6 +115,8 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
   };
 
   const save = () => {
+    // The pass may have run out since the clock last looked.
+    if (needsGate && !gateOpen(readGateRaw())) return;
     setTried(true);
     if (!trimmed || !birth || age === null) return;
 
@@ -137,6 +151,8 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
   };
 
   const finish = () => {
+    // The kids are next to use the device: lock up behind the grown-up.
+    closeGate();
     if (kids.length === 1) {
       writeProfiles({ active: kids[0].id, list: kids });
       router.push("/buddy");
@@ -146,6 +162,19 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
   };
 
   if (now === null) return <main className="min-h-dvh bg-canvas" />;
+
+  if (!unlocked) {
+    return (
+      <main className="grid min-h-dvh place-items-center bg-canvas px-4 py-10">
+        <div className="flex w-full flex-col items-center">
+          <ParentGate inline reason={editing ? `Edit ${editing.name}` : "Add a child"} onPass={() => undefined} />
+          <Link href={editing ? "/parents" : "/profiles"} className="mt-6 text-[0.95rem] font-semibold text-ink-soft hover:text-ink">
+            Back
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   const years = Array.from({ length: 15 }, (_, i) => String(new Date(now).getFullYear() - i));
   const field = "h-12 w-full rounded-xl border bg-canvas px-4 text-[1rem] font-medium text-ink outline-none transition-colors focus:border-ink/50";

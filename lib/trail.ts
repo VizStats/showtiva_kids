@@ -4,6 +4,7 @@
 
 import type { ResolvedChapter, ResolvedStop } from "./catalog-types";
 import type { TrailProgress } from "./device";
+import type { WatchPosition } from "./watch-progress";
 
 export type TrailItem =
   | { kind: "stop"; id: string; chapter: number; stop: ResolvedStop }
@@ -11,6 +12,15 @@ export type TrailItem =
 
 /** How much of a stop counts as watched: most of it, not the credits. */
 export const WATCHED_FRACTION = 0.9;
+
+/**
+ * Whether a stop has earned its star: most of it actually played, over one
+ * sitting or several. Where playback stands does not count, so dragging the
+ * scrubber to the end earns nothing.
+ */
+export function watchedEnough(position: WatchPosition | null | undefined): boolean {
+  return !!position && position.d > 0 && (position.w ?? 0) >= position.d * WATCHED_FRACTION;
+}
 
 export function trailItems(chapters: ResolvedChapter[]): TrailItem[] {
   return chapters.flatMap((chapter, index): TrailItem[] => [

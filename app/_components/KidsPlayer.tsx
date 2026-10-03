@@ -36,8 +36,12 @@ interface KidsPlayerProps {
   /** Seconds into the start item to open at. */
   resumeAt?: number;
   onClose: () => void;
-  /** Where playback is, every few seconds and on pause, end and close. */
-  onProgress: (key: string, seconds: number, duration: number) => void;
+  /**
+   * Where playback is, every few seconds and on pause, end and close, with
+   * the seconds actually played since the last call (skips, drags and resumes
+   * left out), so a page can tell watching from skipping to the end.
+   */
+  onProgress: (key: string, seconds: number, duration: number, played: number) => void;
   /** Tells the page which item is playing, so its list can follow. */
   onItemChange?: (key: string) => void;
   /** Called when the last item ends. When given, it replaces the end screen:
@@ -127,26 +131,45 @@ export default function KidsPlayer({
     latestKey.current = key;
   }, [key]);
 
-  const report = useCallback(
-    (video: HTMLVideoElement | null, atEnd = false) => {
-      if (!video || !Number.isFinite(video.duration)) return;
-      const d = video.duration - base.current;
-      onProgress(latestKey.current, atEnd ? d : video.currentTime - base.current, d);
-    },
-    [onProgress],
-  );
+  // Seconds actually played since the last report. Only steps of ordinary
+  // playback count: every jump (a drag, a skip, a resume) is a seek, and a
+  // seek forgets where the last step started.
+  const played = useRef(0);
+  const lastTime = useRef<number | null>(null);
+
+  // The page's latest handler, read when reporting, so a page that passes a
+  // new function each render never re-runs the lifecycle below (which would
+  // drop out of full screen).
+  const onProgressRef = useRef(onProgress);
+  useEffect(() => {
+    onProgressRef.current = onProgress;
+  });
+
+  const report = useCallback((video: HTMLVideoElement | null, atEnd = false) => {
+    if (!video || !Number.isFinite(video.duration)) return;
+    const d = video.duration - base.current;
+    onProgressRef.current(latestKey.current, atEnd ? d : video.currentTime - base.current, d, played.current);
+    played.current = 0;
+  }, []);
+
+  // The last video element shown. React clears `videoRef` before the cleanup
+  // below runs, so closing the theatre reports through this one instead.
+  const shown = useRef<HTMLVideoElement | null>(null);
+  const attachVideo = useCallback((video: HTMLVideoElement | null) => {
+    videoRef.current = video;
+    if (video) shown.current = video;
+  }, []);
 
   /* ---------------------------------------------------- page lifecycle -- */
 
   useEffect(() => {
     const previous = document.body.style.overflow;
     if (!inline) document.body.style.overflow = "hidden";
-    const videoEl = videoRef;
     return () => {
       if (!inline) document.body.style.overflow = previous;
       if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
       // Whatever is playing as the theatre closes, not what it opened on.
-      report(videoEl.current);
+      report(shown.current);
     };
   }, [report, inline]);
 
@@ -204,6 +227,8 @@ export default function KidsPlayer({
   const goTo = useCallback(
     (nextKey: string) => {
       report(videoRef.current);
+      played.current = 0;
+      lastTime.current = null;
       pendingResume.current = 0;
       setEnded(false);
       setTime(0);
@@ -258,7 +283,14 @@ export default function KidsPlayer({
   const onTimeUpdate = () => {
     const video = videoRef.current;
     if (!video || dragging) return;
-    setTime(Math.max(0, video.currentTime - base.current));
+    const at = video.currentTime;
+    if (lastTime.current !== null && !video.seeking) {
+      const step = at - lastTime.current;
+      // Updates come a few times a second; anything bigger was a jump.
+      if (step > 0 && step < 3) played.current += step;
+    }
+    lastTime.current = at;
+    setTime(Math.max(0, at - base.current));
     if (Date.now() - lastSaved.current > 4000) {
       lastSaved.current = Date.now();
       report(video);
@@ -302,7 +334,7 @@ export default function KidsPlayer({
     >
       <video
         key={key}
-        ref={videoRef}
+        ref={attachVideo}
         className="absolute inset-0 h-full w-full object-contain"
         autoPlay
         playsInline
@@ -329,6 +361,9 @@ export default function KidsPlayer({
           setLength(Math.max(0, video.duration - base.current));
         }}
         onTimeUpdate={onTimeUpdate}
+        onSeeking={() => {
+          lastTime.current = null;
+        }}
         onEnded={() => {
           report(videoRef.current, true);
           if (onFinished && !next) {
