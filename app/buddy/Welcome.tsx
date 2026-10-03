@@ -45,9 +45,9 @@ const BETWEEN_MS = 650;
  * speech bubble as they say them, and on the last line "Start journey" pops
  * up. Tap them and they jump.
  *
- * The voice is the browser's own speech, a different one per friend (see
- * lib/speak.ts). It can be muted, and where a device has no voice the
- * bubble carries the lines alone at the same pace.
+ * The voice is the device's own speech, a different one per friend (see
+ * lib/speak.ts), never an online voice. It can be muted, and where a device
+ * has no voice the bubble carries the lines alone at the same pace.
  */
 export default function Welcome({ character, kid, onBack }: { character: CharacterData; kid: Profile; onBack: () => void }) {
   const router = useRouter();
@@ -74,9 +74,9 @@ export default function Welcome({ character, kid, onBack }: { character: Charact
   const voiceStyle = character.voice;
   const { rate } = voiceStyle;
 
-  // A beat of loading while the buddy gets ready. Online voices take a few
-  // seconds to wake the first time, so the loader also waits (up to a point)
-  // for a silent word in their voice, and the first real line starts on time.
+  // A beat of loading while the buddy gets ready. Some voices take a moment
+  // to wake the first time, so the loader also waits (up to a point) for a
+  // silent word in their voice, and the first real line starts on time.
   useEffect(() => {
     router.prefetch("/trail");
     const began = Date.now();

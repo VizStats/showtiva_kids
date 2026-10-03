@@ -15,5 +15,10 @@ export function tint(character: { color: string; soft: string; deep: string; onC
   } as CSSProperties;
 }
 
-/** The main ShowTiva app: where grown-ups go, and where Kids links back to. */
-export const SHOWTIVA_URL = process.env.NEXT_PUBLIC_SHOWTIVA_URL ?? "https://showtiva-site.vercel.app";
+/**
+ * The main ShowTiva app: where grown-ups go, and where Kids links back to.
+ * Unset, there are no links to it at all. There is deliberately no default:
+ * the main site's preview still carries placeholder titles from other
+ * studios, so it is linked only once someone sets this on purpose.
+ */
+export const SHOWTIVA_URL: string | null = process.env.NEXT_PUBLIC_SHOWTIVA_URL || null;

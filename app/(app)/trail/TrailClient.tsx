@@ -4,11 +4,11 @@
 // friend (see Scenery.tsx for the land itself).
 //
 // Stops sit along a road that winds from side to side across the whole map.
-// Only the next one is open; watch it (most of it, not just the start) and
-// the buddy the child picked walks along the road to the one after, which
-// pops open. Every island ends in a treasure chest holding that island host's
-// sticker, and the next island only opens once the chest has been opened, so
-// the reward is always claimed.
+// Only the next one is open; watch it (most of it actually played, not
+// skipped through) and the buddy the child picked walks along the road to the
+// one after, which pops open. Every island ends in a treasure chest holding
+// that island host's sticker, and the next island only opens once the chest
+// has been opened, so the reward is always claimed.
 //
 // Geometry is computed in pixels from the map's measured width, because the
 // buddy walks the road with CSS motion paths (offset-path), and those take
@@ -31,7 +31,7 @@ import {
   toggleFavourite,
   type TrailProgress,
 } from "@/lib/device";
-import { currentIndex, isComplete, trailItems, WATCHED_FRACTION, type TrailItem } from "@/lib/trail";
+import { currentIndex, isComplete, trailItems, watchedEnough, type TrailItem } from "@/lib/trail";
 import { parseProgress, readRaw, resumeSeconds, saveProgress } from "@/lib/watch-progress";
 
 import Burst from "@/app/_components/Burst";
@@ -308,7 +308,7 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
   };
 
   const play = (stop: ResolvedStop) => {
-    const saved = parseProgress(readRaw(stop.showId));
+    const saved = parseProgress(readRaw(profileId, stop.showId));
     setSelected(null);
     setArrived(false);
     setPlaying({ stop, at: resumeSeconds(saved?.items[stop.key]) });
@@ -680,12 +680,17 @@ export default function TrailClient({ chapters, characters, buddy, profileId, na
           items={[{ key: playing.stop.key, label: playing.stop.label, title: playing.stop.title, videoUrl: playing.stop.videoUrl }]}
           startKey={playing.stop.key}
           resumeAt={playing.at}
-          onProgress={(key, t, d) => {
-            saveProgress(playing.stop.showId, key, t, d);
-            if (d > 0 && t / d >= WATCHED_FRACTION) markStopDone(profileId, playing.stop.id);
+          onProgress={(key, t, d, played) => {
+            // The star is for watching: seconds actually played, not where
+            // the scrubber was left.
+            if (watchedEnough(saveProgress(profileId, playing.stop.showId, key, t, d, played))) {
+              markStopDone(profileId, playing.stop.id);
+            }
           }}
           onFinished={() => {
-            markStopDone(profileId, playing.stop.id);
+            const position = parseProgress(readRaw(profileId, playing.stop.showId))?.items[playing.stop.key];
+            if (watchedEnough(position)) markStopDone(profileId, playing.stop.id);
+            else talk(`We skipped to the end! Watch "${playing.stop.title}" all the way through to earn its star.`);
             setPlaying(null);
           }}
           onClose={() => setPlaying(null)}

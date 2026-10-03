@@ -59,7 +59,9 @@ export default function ShowClient({ show, characters, sameHost, related, profil
 
   /* -------------------------------------------------------- progress -- */
 
-  const raw = useSyncExternalStore(subscribeProgress, () => readRaw(show.id), () => null);
+  // Each child's own progress; "guest" before anyone has been picked.
+  const viewer = profileId ?? "guest";
+  const raw = useSyncExternalStore(subscribeProgress, () => readRaw(viewer, show.id), () => null);
   const progress = parseProgress(raw);
 
   // Where Play should go: the last thing played if it is unfinished,
@@ -88,7 +90,12 @@ export default function ShowClient({ show, characters, sameHost, related, profil
   const player = chosen ?? (arrivedToPlay ? { key: resume.key, at: resume.at } : null);
 
   const open = (key: string, at = 0) => setChosen({ key, at });
-  const onProgress = useCallback((key: string, t: number, d: number) => saveProgress(show.id, key, t, d), [show.id]);
+  const onProgress = useCallback(
+    (key: string, t: number, d: number, played: number) => {
+      saveProgress(viewer, show.id, key, t, d, played);
+    },
+    [viewer, show.id],
+  );
   const onClose = () => {
     setChosen(null);
     setNowPlaying(null);

@@ -2,8 +2,9 @@
 
 // The grown-ups area. A settings page that reads like one: section names on
 // the left, the controls on the right, hairlines between, and the kids first
-// because they are what a parent comes here for. Open to anyone for now; it
-// gets a proper lock when there are accounts to sign in to.
+// because they are what a parent comes here for. It opens behind the gate,
+// which holds for a few minutes so a parent changing three things is asked
+// once, and locks again on the way out. A proper sign-in comes with accounts.
 
 import { useState, useSyncExternalStore } from "react";
 import Link from "next/link";
@@ -13,14 +14,17 @@ import type { Character } from "@/lib/catalog-types";
 import { SHOWTIVA_URL, cx } from "@/lib/cx";
 import {
   clearDevice,
+  closeGate,
+  forgetProfile,
+  gateOpen,
   parseFavourites,
   parseTimer,
   parseTrail,
   readFavouritesRaw,
+  readGateRaw,
   readTimerRaw,
   readTrailRaw,
   readVoiceOn,
-  removePhoto,
   setTimer,
   setVoiceOn,
   subscribeDevice,
@@ -30,6 +34,7 @@ import { useClock } from "@/lib/use-client";
 
 import Icon from "../_components/Icon";
 import KidAvatar from "../_components/KidAvatar";
+import ParentGate from "../_components/ParentGate";
 
 const TIMER_CHOICES: { value: number | null; label: string }[] = [
   { value: null, label: "Off" },
@@ -43,6 +48,7 @@ export default function ParentsClient({ state, characters }: { state: ProfileSta
   const router = useRouter();
   // The viewer's clock; null on the server, which cannot know it.
   const now = useClock(1000);
+  const gateRaw = useSyncExternalStore(subscribeDevice, readGateRaw, () => "");
   const timer = parseTimer(useSyncExternalStore(subscribeDevice, readTimerRaw, () => ""));
   const voiceOn = useSyncExternalStore(subscribeDevice, readVoiceOn, () => true);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -54,19 +60,36 @@ export default function ParentsClient({ state, characters }: { state: ProfileSta
 
   if (now === null) return <main className="min-h-dvh bg-canvas" />;
 
+  if (!gateOpen(gateRaw, now)) {
+    return (
+      <main className="grid min-h-dvh place-items-center bg-canvas px-4 py-10">
+        <div className="flex w-full flex-col items-center">
+          <ParentGate inline reason="Open the grown-ups area" onPass={() => undefined} />
+          <Link href="/trail" className="mt-6 text-[0.95rem] font-semibold text-ink-soft hover:text-ink">
+            Back to the trail
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
   const minutesLeft = timer ? Math.max(0, Math.ceil((timer.endsAt - now) / 60_000)) : null;
   const timerShare = timer ? Math.min(1, Math.max(0, (timer.endsAt - now) / (timer.minutes * 60_000))) : 0;
 
   return (
     <main className="min-h-dvh bg-canvas pb-24 text-ink">
       <header className="mx-auto flex max-w-[980px] items-center justify-between gap-4 px-6 pt-6 max-[640px]:px-4">
-        <Link href="/trail" aria-label="ShowTiva Kids home">
+        <Link href="/trail" onClick={closeGate} aria-label="ShowTiva Kids home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/logo.svg" alt="ShowTiva Kids" className="h-9 w-auto" />
         </Link>
-        <Link href="/trail" className="inline-flex items-center gap-1.5 text-[0.95rem] font-semibold text-ink-soft transition-colors hover:text-ink">
-          <Icon name="back" className="size-[18px]" />
-          Back to the trail
+        <Link
+          href="/trail"
+          onClick={closeGate}
+          className="inline-flex items-center gap-1.5 text-[0.95rem] font-semibold text-ink-soft transition-colors hover:text-ink"
+        >
+          <Icon name="lock" className="size-[18px]" />
+          Lock and go back
         </Link>
       </header>
 
@@ -93,7 +116,7 @@ export default function ParentsClient({ state, characters }: { state: ProfileSta
                   buddy={characters.find((c) => c.id === profile.buddy) ?? null}
                   now={now}
                   onRemove={() => {
-                    removePhoto(profile.id);
+                    forgetProfile(profile.id);
                     save({ active: state.active === profile.id ? null : state.active, list: state.list.filter((p) => p.id !== profile.id) });
                   }}
                 />
@@ -144,7 +167,10 @@ export default function ParentsClient({ state, characters }: { state: ProfileSta
           )}
         </Section>
 
-        <Section title="Sound" hint="The buddies speak out loud when they introduce themselves and when they are tapped.">
+        <Section
+          title="Sound"
+          hint="The buddies speak out loud when they introduce themselves and when they are tapped. Only voices built into this device are used, never online ones, so nothing they say leaves it. Where there are none, the words show on screen."
+        >
           <Switch label="Buddy voices" on={voiceOn} onChange={setVoiceOn} />
         </Section>
 
@@ -192,19 +218,22 @@ export default function ParentsClient({ state, characters }: { state: ProfileSta
               </button>
             )}
           </div>
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-line pt-6">
-            <div className="min-w-0">
-              <p className="text-[0.98rem] font-semibold">ShowTiva for grown-ups</p>
-              <p className="mt-0.5 text-[0.9rem] text-ink-soft">The main ShowTiva app, for everything that isn&apos;t for kids.</p>
+          {SHOWTIVA_URL && (
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-line pt-6">
+              <div className="min-w-0">
+                <p className="text-[0.98rem] font-semibold">ShowTiva for grown-ups</p>
+                <p className="mt-0.5 text-[0.9rem] text-ink-soft">The main ShowTiva app, for everything that isn&apos;t for kids.</p>
+              </div>
+              <a
+                href={SHOWTIVA_URL}
+                onClick={closeGate}
+                className="inline-flex h-10 items-center gap-1 rounded-lg border border-line bg-paper px-4 text-[0.9rem] font-semibold transition-colors hover:border-ink/30"
+              >
+                Open ShowTiva
+                <Icon name="chevron-right" className="size-4" />
+              </a>
             </div>
-            <a
-              href={SHOWTIVA_URL}
-              className="inline-flex h-10 items-center gap-1 rounded-lg border border-line bg-paper px-4 text-[0.9rem] font-semibold transition-colors hover:border-ink/30"
-            >
-              Open ShowTiva
-              <Icon name="chevron-right" className="size-4" />
-            </a>
-          </div>
+          )}
         </Section>
       </div>
     </main>
