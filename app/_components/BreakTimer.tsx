@@ -11,7 +11,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 
-import { closeGate, parseTimer, readTimerRaw, setTimer, subscribeDevice } from "@/lib/device";
+import { closeGate, gateOpen, parseTimer, readGateRaw, readTimerRaw, setTimer, subscribeDevice } from "@/lib/device";
 import { useClock } from "@/lib/use-client";
 
 import Icon from "./Icon";
@@ -105,10 +105,14 @@ export default function BreakTimer() {
 }
 
 function GrownUpChoice({ minutes, onDone }: { minutes: number; onDone: () => void }) {
-  const [passed, setPassed] = useState(false);
+  // The choices show only while the gate is open, read from the gate itself
+  // rather than remembered here: a pass expires, and choices left on screen
+  // past that must not stay usable by whoever finds them.
+  const gateRaw = useSyncExternalStore(subscribeDevice, readGateRaw, () => "");
+  const now = useClock(1000);
 
-  if (!passed) {
-    return <ParentGate reason="Unlock ShowTiva Kids" onPass={() => setPassed(true)} onCancel={onDone} />;
+  if (now === null || !gateOpen(gateRaw, now)) {
+    return <ParentGate reason="Unlock ShowTiva Kids" onPass={() => undefined} onCancel={onDone} />;
   }
 
   // Whatever the grown-up picks, the gate locks again behind them, so the
@@ -116,6 +120,14 @@ function GrownUpChoice({ minutes, onDone }: { minutes: number; onDone: () => voi
   const done = () => {
     closeGate();
     onDone();
+  };
+
+  // Checked again on the tap itself, which can land up to a second after the
+  // clock last looked. An expired pass does nothing; the gate is back a tick later.
+  const choose = (next: number | null) => {
+    if (!gateOpen(readGateRaw())) return;
+    setTimer(next);
+    done();
   };
 
   return (
@@ -128,10 +140,7 @@ function GrownUpChoice({ minutes, onDone }: { minutes: number; onDone: () => voi
             <button
               key={m}
               type="button"
-              onClick={() => {
-                setTimer(m);
-                done();
-              }}
+              onClick={() => choose(m)}
               className="h-13 cursor-pointer rounded-2xl bg-ink px-5 text-[0.98rem] font-semibold text-white transition-transform active:scale-[0.98]"
             >
               {m} more minutes
@@ -139,10 +148,7 @@ function GrownUpChoice({ minutes, onDone }: { minutes: number; onDone: () => voi
           ))}
           <button
             type="button"
-            onClick={() => {
-              setTimer(null);
-              done();
-            }}
+            onClick={() => choose(null)}
             className="h-13 cursor-pointer rounded-2xl bg-mist px-5 text-[0.98rem] font-semibold text-ink transition-colors hover:bg-[#ebe3d6]"
           >
             Turn the timer off

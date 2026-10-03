@@ -70,7 +70,6 @@ interface AddKidsClientProps {
 
 export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
   const router = useRouter();
-  const now = useClock(60_000);
 
   // Adding to a family that already has kids, or editing one (a new birthday
   // is a new level), is a grown-up's job, so it sits behind the gate. The very
@@ -78,6 +77,9 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
   // Decided once, on arrival, so the gate cannot appear half way through
   // adding a second child.
   const [needsGate] = useState(() => state.list.length > 0);
+  // Behind the gate the clock ticks every second, so the form locks as soon
+  // as the pass expires; otherwise once a minute is enough for an age.
+  const now = useClock(needsGate ? 1000 : 60_000);
   const gateRaw = useSyncExternalStore(subscribeDevice, readGateRaw, () => "");
   const unlocked = !needsGate || (now !== null && gateOpen(gateRaw, now));
 
@@ -113,6 +115,8 @@ export default function AddKidsClient({ state, editing }: AddKidsClientProps) {
   };
 
   const save = () => {
+    // The pass may have run out since the clock last looked.
+    if (needsGate && !gateOpen(readGateRaw())) return;
     setTried(true);
     if (!trimmed || !birth || age === null) return;
 
